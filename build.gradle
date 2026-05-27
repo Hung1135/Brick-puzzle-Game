@@ -1,0 +1,114 @@
+import org.hidetake.groovy.ssh.core.Service
+
+plugins {
+    id 'java'
+    id 'war'
+    id 'maven-publish'
+    id 'org.hidetake.ssh' version '2.11.2'
+}
+
+group = 'vn.edu.hcmuaf.fit'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Servlet API
+    providedCompile 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+
+    // JSTL Jakarta (phiên bản mới cho Tomcat 10+)
+    implementation 'org.glassfish.web:jakarta.servlet.jsp.jstl:2.0.0'
+
+    // Gson
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    // JDBI
+    implementation 'org.jdbi:jdbi3-core:3.45.1'
+    implementation 'org.jdbi:jdbi3-sqlobject:3.45.1'
+
+    // MySQL
+    implementation 'mysql:mysql-connector-java:8.0.33'
+}
+
+ssh.settings {
+    knownHosts = allowAnyHosts
+}
+
+remotes {
+    server {
+        host = '192.168.59.138'
+        user = 'hung'
+        password = '123'
+    }
+}
+
+/* =========================
+   START TOMCAT
+   ========================= */
+
+tasks.register('docker_app_start') {
+
+    doLast {
+
+        project.ssh.run {
+
+            session(remotes.server) {
+
+                execute('docker stop tomcat9', ignoreError: true)
+
+                execute('docker rm tomcat9', ignoreError: true)
+
+                execute("""
+                    docker run -d \
+                    --name tomcat9 \
+                    -v /opt/deploy:/usr/local/tomcat/webapps \
+                    -p 80:8080 \
+                   tomcat:10.1-jdk21
+                """.stripIndent())
+            }
+        }
+    }
+}
+
+/* =========================
+   UPLOAD WAR
+   ========================= */
+
+tasks.register('docker_upload_file_to_server') {
+
+    dependsOn 'war'
+
+    doLast {
+
+        project.ssh.run {
+
+            session(remotes.server) {
+
+                execute('mkdir -p /opt/deploy')
+
+                execute('rm -f /opt/deploy/brick-puzzle.war', ignoreError: true)
+
+                put(
+                        from: file("${project.projectDir}/build/libs/TTLTW_Nhom6-1.0-SNAPSHOT.war"),
+                        into: '/opt/deploy/brick-puzzle.war'
+                )
+            }
+        }
+    }
+}
+
+/* =========================
+   DEPLOY
+   ========================= */
+
+tasks.register('docker_deploy') {
+
+    dependsOn 'docker_upload_file_to_server'
+    dependsOn 'docker_app_start'
+}
+
+tasks.named('docker_app_start') {
+    mustRunAfter 'docker_upload_file_to_server'
+}
