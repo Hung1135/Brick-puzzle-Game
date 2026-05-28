@@ -81,6 +81,18 @@ export default class GameController {
         // 14.1. Hệ thống hiển thị màn Game Over với số điểm cuối cùng, điểm cao nhất và cờ kỷ lục mới.
         this.view.showGameOver(this.model.score, this.hi, this.newRecord);
     }
+    _checkGameOver() {
+        // 11.0. Trigger: Được gọi sau khi model thay đổi (lock/spawn hoặc sau input).
+        // 11.1. Hệ thống kiểm tra cờ `model.gameOver`.
+
+        if (this.model.gameOver) {
+            // 11.2. Nếu true -> chuyển sang handler xử lý Game Over.
+            this.handleGameOver();
+        }
+    }
+
+
+
 
 
 
