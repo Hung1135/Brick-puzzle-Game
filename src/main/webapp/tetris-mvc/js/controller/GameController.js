@@ -97,6 +97,21 @@ export default class GameController {
         //        cập nhật điểm cao và hiển thị giao diện Game Over.
         this.stopGame();
     }
+    _updateHighScore() {
+        // Main Flow: Update High Score when Game Over
+        // 13.0. Hệ thống lấy điểm hiện tại của người chơi từ model: this.model.score
+        // 13.1. Hệ thống so sánh điểm hiện tại với điểm cao nhất đã lưu (this.hi).
+        if (this.model.score > this.hi) {
+            // 13.2. Nếu điểm hiện tại lớn hơn điểm cao nhất đã lưu:
+            //       - Cập nhật biến hi trong controller
+            //       - Lưu điểm cao nhất mới vào localStorage
+            //       - Đánh dấu newRecord = true để view có thể hiển thị badge
+            this.hi = this.model.score;
+            localStorage.setItem('tetris_hi', this.hi); // 13.2.2 Persist to storage
+            this.newRecord = true; // 13.2.3 Mark new record
+        }
+        // 13.3. Nếu không có kỷ lục mới, không ghi vào localStorage và newRecord giữ false.
+    }
 
 
 
