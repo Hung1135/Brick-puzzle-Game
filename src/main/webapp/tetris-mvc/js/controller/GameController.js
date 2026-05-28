@@ -90,6 +90,16 @@ export default class GameController {
             this.handleGameOver();
         }
     }
+    handleGameOver() {
+        // Main Flow: Handle Game Over (delegates to stop)
+        // Implements UC_11.3: Handler chuyển tiếp các bước dừng game và hiển thị.
+        // 11.3. Handler: ủy quyền cho stopGame() để thực hiện các bước dừng game,
+        //        cập nhật điểm cao và hiển thị giao diện Game Over.
+        this.stopGame();
+    }
+
+
+
 
 
 
