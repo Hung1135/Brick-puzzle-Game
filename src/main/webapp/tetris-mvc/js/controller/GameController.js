@@ -57,6 +57,40 @@ export default class GameController {
         }
     }
 
+    startGame() {
+        // Main Flow: Start Game Loop & Transition to Playing
+        // Implements UC_01 - START GAME
+
+        // 1.1. Người chơi nhấn nút Start → hệ thống nhận yêu cầu bắt đầu trò chơi.
+        if (this.state === 'playing') return;
+
+        // 1.2. Khởi tạo bảng game với lưới ô trống.
+        this.initGame();
+        // 1.3. Sinh block đầu tiên và đặt tại vị trí spawn.
+        this.model.generateFirstBlock();
+
+        // 1.4. Chuyển trạng thái game sang running.
+        this.setGameState('playing');
+        // 1.5. Hiển thị bảng game và block đầu tiên.
+        this.view.renderBoard(this.model);
+
+
+    }
+
+    initGame() {
+        this.model.reset();
+        this.view.hideAll();
+        this._syncView();
+    }
+
+
+    setGameState(state) {
+        this.state = state;
+        this.gameOverHandled = false;
+        this.newRecord = false;
+    }
+
+
 
     stopGame() {
         // Main Flow: Stop Game Loop & Transition to Game Over
