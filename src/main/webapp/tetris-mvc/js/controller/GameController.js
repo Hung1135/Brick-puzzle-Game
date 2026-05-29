@@ -66,6 +66,13 @@ export default class GameController {
 
         // 1.2. Khởi tạo bảng game với lưới ô trống.
         this.initGame();
+        // 1.3. Sinh block đầu tiên và đặt tại vị trí spawn.
+        this.model.generateFirstBlock();
+
+        // 1.4. Chuyển trạng thái game sang running.
+        this.setGameState('playing');
+        // 1.5. Hiển thị bảng game và block đầu tiên.
+        this.view.renderBoard(this.model);
 
 
     }
@@ -76,6 +83,12 @@ export default class GameController {
         this._syncView();
     }
 
+
+    setGameState(state) {
+        this.state = state;
+        this.gameOverHandled = false;
+        this.newRecord = false;
+    }
 
 
 
