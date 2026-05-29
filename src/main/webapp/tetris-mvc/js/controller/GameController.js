@@ -57,6 +57,27 @@ export default class GameController {
         }
     }
 
+    startGame() {
+        // Main Flow: Start Game Loop & Transition to Playing
+        // Implements UC_01 - START GAME
+
+        // 1.1. Người chơi nhấn nút Start → hệ thống nhận yêu cầu bắt đầu trò chơi.
+        if (this.state === 'playing') return;
+
+        // 1.2. Khởi tạo bảng game với lưới ô trống.
+        this.initGame();
+
+
+    }
+
+    initGame() {
+        this.model.reset();
+        this.view.hideAll();
+        this._syncView();
+    }
+
+
+
 
     stopGame() {
         // Main Flow: Stop Game Loop & Transition to Game Over
