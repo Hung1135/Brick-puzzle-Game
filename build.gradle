@@ -29,7 +29,8 @@ dependencies {
     implementation 'org.jdbi:jdbi3-sqlobject:3.45.1'
 
     // MySQL
-    implementation 'mysql:mysql-connector-java:8.0.33'
+    implementation 'com.mysql:mysql-connector-j:9.2.0'
+
 }
 
 ssh.settings {
