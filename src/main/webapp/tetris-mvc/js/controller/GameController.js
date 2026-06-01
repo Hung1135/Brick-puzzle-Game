@@ -147,12 +147,137 @@ export default class GameController {
         // 13.3. Nếu không có kỷ lục mới, không ghi vào localStorage và newRecord giữ false.
     }
 
+    _onKey(e) {
 
+        // Preconditions:
+        // - Trò chơi phải đang ở trạng thái Playing.
+        // - Người chơi thực hiện thao tác từ bàn phím.
 
+        if (this.state !== 'playing') {
 
+            // UC: Tiếp tục trò chơi
+            // Nếu game đang Pause và người chơi nhấn P,
+            // hệ thống chuyển trạng thái về Playing.
+            if (e.code === 'KeyP' && this.state === 'paused') {
+                this.resume();
+            }
 
+            return;
+        }
 
+        const m = this.model;
 
+        switch (e.code) {
 
+            // =====================================================
+            // DI CHUYỂN BLOCK SANG TRÁI
+            // =====================================================
+            case 'ArrowLeft':
+
+                // 1. Người chơi nhấn phím ←.
+                // 2. Hệ thống xác định hướng di chuyển sang trái.
+                // 3. Hệ thống kiểm tra va chạm với tường hoặc block khác.
+                // 4. Nếu hợp lệ, cập nhật vị trí block sang trái 1 ô.
+                // A1. Nếu có va chạm, giữ nguyên vị trí hiện tại.
+                m.moveLeft();
+                break;
+
+            // =====================================================
+            // DI CHUYỂN BLOCK SANG PHẢI
+            // =====================================================
+            case 'ArrowRight':
+
+                // 1. Người chơi nhấn phím →.
+                // 2. Hệ thống xác định hướng di chuyển sang phải.
+                // 3. Hệ thống kiểm tra va chạm với tường hoặc block khác.
+                // 4. Nếu hợp lệ, cập nhật vị trí block sang phải 1 ô.
+                // A1. Nếu có va chạm, giữ nguyên vị trí hiện tại.
+                m.moveRight();
+                break;
+
+            // =====================================================
+            // SOFT DROP
+            // =====================================================
+            case 'ArrowDown':
+
+                // 1. Người chơi nhấn phím ↓.
+                // 2. Hệ thống tăng tốc độ rơi của block hiện tại.
+                // 3. Hệ thống kiểm tra vị trí phía dưới.
+                // 4. Nếu hợp lệ, block rơi xuống thêm 1 ô.
+                // 5. Reset bộ đếm thời gian rơi tự động.
+                m.softDrop();
+                this._dropAcc = 0;
+                break;
+
+            // =====================================================
+            // XOAY BLOCK THEO CHIỀU KIM ĐỒNG HỒ
+            // =====================================================
+            case 'ArrowUp':
+            case 'KeyZ':
+
+                // 1. Người chơi nhấn phím xoay.
+                // 2. Hệ thống tính toán trạng thái xoay mới.
+                // 3. Hệ thống kiểm tra va chạm sau khi xoay.
+                // 4. Nếu hợp lệ, cập nhật hình dạng block.
+                // A1. Nếu không hợp lệ, giữ nguyên trạng thái cũ.
+                m.rotate(1);
+                break;
+
+            // =====================================================
+            // XOAY BLOCK NGƯỢC CHIỀU KIM ĐỒNG HỒ
+            // =====================================================
+            case 'KeyX':
+
+                // 1. Người chơi nhấn phím X.
+                // 2. Hệ thống tính toán trạng thái xoay ngược.
+                // 3. Hệ thống kiểm tra va chạm.
+                // 4. Nếu hợp lệ, cập nhật hình dạng block.
+                // A1. Nếu không hợp lệ, giữ nguyên trạng thái hiện tại.
+                m.rotate(-1);
+                break;
+
+            // =====================================================
+            // HARD DROP
+            // =====================================================
+            case 'Space':
+
+                // 1. Người chơi nhấn phím Space.
+                // 2. Hệ thống xác định vị trí thấp nhất có thể đặt block.
+                // 3. Di chuyển block xuống vị trí đó ngay lập tức.
+                // 4. Khóa block vào bảng chơi.
+                // 5. Kiểm tra các hàng đầy.
+                // 6. Xóa hàng (nếu có).
+                // 7. Cập nhật điểm số.
+                // 8. Sinh block mới.
+                // A1. Nếu block mới không thể xuất hiện,
+                //     hệ thống kích hoạt Game Over.
+                m.hardDrop();
+                break;
+
+            // =====================================================
+            // TẠM DỪNG TRÒ CHƠI
+            // =====================================================
+            case 'KeyP':
+
+                // 1. Người chơi nhấn phím P.
+                // 2. Hệ thống chuyển trạng thái game sang Paused.
+                // 3. Tạm dừng cập nhật trò chơi.
+                this.pause();
+                break;
+
+            default:
+                return;
+        }
+
+        e.preventDefault();
+
+        // Kiểm tra điều kiện Game Over sau khi thao tác.
+        this._checkGameOver();
+
+        // Postconditions:
+        // - Trạng thái game được cập nhật theo thao tác.
+        // - Màn hình được render lại phản ánh dữ liệu mới.
+        this._syncView();
+    }
 
 }

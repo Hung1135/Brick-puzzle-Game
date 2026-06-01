@@ -255,80 +255,7 @@ export default class GameController {
         }
     }
 
-    // ─────────────────────────────
-    // INPUT HANDLER
-    // ─────────────────────────────
 
-    _onKey(e) {
-
-        if (this.state !== 'playing') {
-
-            if (e.code === 'KeyP' && this.state === 'paused') {
-                this.resume();
-            }
-
-            return;
-        }
-
-        const m = this.model;
-
-        switch (e.code) {
-
-            // Di chuyển sang trái
-            case 'ArrowLeft':
-                m.moveLeft();
-                break;
-
-            // Di chuyển sang phải
-            case 'ArrowRight':
-                m.moveRight();
-                break;
-
-            // Soft Drop
-            // Tăng tốc độ rơi của khối hiện tại
-            case 'ArrowDown':
-                m.softDrop();
-                this._dropAcc = 0;
-                break;
-
-            // Xoay theo chiều kim đồng hồ
-            case 'ArrowUp':
-            case 'KeyZ':
-                m.rotate(1);
-                break;
-
-            // Xoay ngược chiều kim đồng hồ
-            case 'KeyX':
-                m.rotate(-1);
-                break;
-
-            // Hard Drop
-            // Thả khối xuống đáy ngay lập tức
-            // Sau đó GameModel sẽ:
-            // - Khóa khối vào board
-            // - Kiểm tra hàng đầy
-            // - Xóa hàng (Clear Line)
-            // - Cộng điểm
-            // - Sinh khối mới
-            case 'Space':
-                m.hardDrop();
-                break;
-
-            // Tạm dừng game
-            case 'KeyP':
-                this.pause();
-                break;
-
-            default:
-                return;
-        }
-
-        e.preventDefault();
-
-        this._checkGameOver();
-
-        this._syncView();
-    }
 
     // ─────────────────────────────
     // GAME LOOP
@@ -421,5 +348,80 @@ export default class GameController {
 
         // Cập nhật điểm, level, line, high score
         this.view.updateHUD(this.model, this.hi);
+    }
+
+    // ─────────────────────────────
+    // INPUT HANDLER
+    // ─────────────────────────────
+
+    _onKey(e) {
+
+        if (this.state !== 'playing') {
+
+            if (e.code === 'KeyP' && this.state === 'paused') {
+                this.resume();
+            }
+
+            return;
+        }
+
+        const m = this.model;
+
+        switch (e.code) {
+
+            // Di chuyển sang trái
+            case 'ArrowLeft':
+                m.moveLeft();
+                break;
+
+            // Di chuyển sang phải
+            case 'ArrowRight':
+                m.moveRight();
+                break;
+
+            // Soft Drop
+            // Tăng tốc độ rơi của khối hiện tại
+            case 'ArrowDown':
+                m.softDrop();
+                this._dropAcc = 0;
+                break;
+
+            // Xoay theo chiều kim đồng hồ
+            case 'ArrowUp':
+            case 'KeyZ':
+                m.rotate(1);
+                break;
+
+            // Xoay ngược chiều kim đồng hồ
+            case 'KeyX':
+                m.rotate(-1);
+                break;
+
+            // Hard Drop
+            // Thả khối xuống đáy ngay lập tức
+            // Sau đó GameModel sẽ:
+            // - Khóa khối vào board
+            // - Kiểm tra hàng đầy
+            // - Xóa hàng (Clear Line)
+            // - Cộng điểm
+            // - Sinh khối mới
+            case 'Space':
+                m.hardDrop();
+                break;
+
+            // Tạm dừng game
+            case 'KeyP':
+                this.pause();
+                break;
+
+            default:
+                return;
+        }
+
+        e.preventDefault();
+
+        this._checkGameOver();
+
+        this._syncView();
     }
 }
