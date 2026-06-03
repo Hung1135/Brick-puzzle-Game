@@ -3,13 +3,12 @@ import GameView from "../view/GameView.js";
 
 export default class GameController {
 
-
     constructor() {
 
         this.model = new GameModel();
         this.view = new GameView();
 
-        this.state = 'start';
+        this.state = 'start'; // start | playing | paused | over
 
         this.hi = parseInt(localStorage.getItem('tetris_hi') || '0');
 
@@ -19,7 +18,7 @@ export default class GameController {
         this._rafId = null;
         this._dropAcc = 0;
 
-
+        // FIX GAME OVER MULTIPLE CALL
         this.gameOverHandled = false;
 
         this._bindInputs();
@@ -34,6 +33,7 @@ export default class GameController {
     // ─────────────────────────────
     // INPUT
     // ─────────────────────────────
+
     _bindInputs() {
 
         document.addEventListener('keydown', e => this._onKey(e));
@@ -61,104 +61,296 @@ export default class GameController {
     }
 
     // ─────────────────────────────
-    // START GAME
+    // GAME FLOW
     // ─────────────────────────────
-    startGame() {
-        // Main Flow: Start Game Loop & Transition to Playing
-        // Implements UC_01 - START GAME
 
-        // 1.1. Người chơi nhấn nút Start → hệ thống nhận yêu cầu bắt đầu trò chơi.
+    startGame() {
+
         if (this.state === 'playing') return;
 
-        // 1.2. Khởi tạo bảng game với lưới ô trống.
-        this.initGame();
-        // 1.3. Sinh block đầu tiên và đặt tại vị trí spawn.
-        this.model.generateFirstBlock();
-
-        // 1.4. Chuyển trạng thái game sang running.
-        this.setGameState('playing');
-        // 1.5. Hiển thị bảng game và block đầu tiên.
-        this.view.renderBoard(this.model);
-
-
-    }
-
-    initGame() {
         this.model.reset();
-        this.view.hideAll();
-        this._syncView();
-    }
 
-
-    setGameState(state) {
-        this.state = state;
+        // RESET FLAG
         this.gameOverHandled = false;
+
+        this.state = 'playing';
+
         this.newRecord = false;
+
+        this.view.hideAll();
+
+        this._syncView();
+
+        this._dropAcc = 0;
+
+        this._lastTick = performance.now();
+
+        if (this._rafId) {
+            cancelAnimationFrame(this._rafId);
+        }
+
+        this._loop(this._lastTick);
     }
 
+    restartGame() {
 
+        if (this.state !== 'over') return;
+
+        this.startGame();
+    }
+
+    _returnToMenu() {
+
+        this.stopGame();
+
+        this.view.showStart();
+    }
 
     stopGame() {
-        // Main Flow: Stop Game Loop & Transition to Game Over
+
         if (this.state === 'over') return;
-        // 12.2. Hệ thống chuyển trạng thái trò chơi sang kết thúc.
+
         this.state = 'over';
 
-        // 12.3. Hệ thống hủy vòng lặp cập nhật khung hình hiện tại.
-        if (this._rafId) cancelAnimationFrame(this._rafId);
+        if (this._rafId) {
+            cancelAnimationFrame(this._rafId);
+        }
 
-        // 12.4. Hệ thống ngăn trò chơi tiếp tục cập nhật dữ liệu và render.
-        // (Được thực hiện bởi hai hành động trên: state==='over' và cancelAnimationFrame)
+        // Xóa current piece để render lại board sạch (không còn gạch cuối)
+        this.model.current = null;
+        this.view.render(this.model);
 
-        // 13.x: Xử lý bản ghi cao nhất (chi tiết ở _updateHighScore)
-        // The detailed steps are implemented in _updateHighScore():
-        //  - 13.0: lấy điểm hiện tại từ model
-        //  - 13.1: so sánh với this.hi
-        //  - 13.2: nếu lớn hơn -> cập nhật this.hi, localStorage, this.newRecord
-        //  - 13.3: nếu không -> giữ nguyên (no write)
         this._updateHighScore();
 
-        // 14.1. Hệ thống hiển thị màn Game Over với số điểm cuối cùng, điểm cao nhất và cờ kỷ lục mới.
-        this.view.showGameOver(this.model.score, this.hi, this.newRecord);
+        this.view.showGameOver(
+            this.model.score,
+            this.hi,
+            this.newRecord
+        );
     }
+
+    pause() {
+
+        if (this.state !== 'playing') return;
+
+        this.state = 'paused';
+
+        cancelAnimationFrame(this._rafId);
+
+        this.view.showPause();
+    }
+
+    resume() {
+
+        if (this.state !== 'paused') return;
+
+        this.state = 'playing';
+
+        this.view.hideAll();
+
+        this._lastTick = performance.now();
+
+        this._loop(this._lastTick);
+    }
+
+    // ─────────────────────────────
+    // GAME OVER
+    // ─────────────────────────────
+
     _checkGameOver() {
-        // 11.0. Trigger: Được gọi sau khi model thay đổi (lock/spawn hoặc sau input).
-        // 11.1. Hệ thống kiểm tra cờ `model.gameOver`.
+
+        if (this.gameOverHandled) return;
 
         if (this.model.gameOver) {
-            // 11.2. Nếu true -> chuyển sang handler xử lý Game Over.
+
+            // SET FLAG NGAY TẠI ĐÂY (sync) trước khi gọi async handleGameOver
+            // Tránh race condition: loop + keypress đều gọi _checkGameOver
+            // trước khi await fetch() trong handleGameOver kịp chạy
+            this.gameOverHandled = true;
+
             this.handleGameOver();
         }
     }
-    handleGameOver() {
-        // Main Flow: Handle Game Over (delegates to stop)
-        // Implements UC_11.3: Handler chuyển tiếp các bước dừng game và hiển thị.
-        // 11.3. Handler: ủy quyền cho stopGame() để thực hiện các bước dừng game,
-        //        cập nhật điểm cao và hiển thị giao diện Game Over.
+
+    async handleGameOver() {
+
+        console.log("GAME OVER FUNCTION RUNNING");
+
+        try {
+
+            const response = await fetch(
+                `${window.CONTEXT_PATH}/save-score`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        score: this.model.score,
+
+                        level: this.model.level,
+
+                        linesCleared: this.model.lines,
+
+                        playTimeSeconds: 120
+                    })
+                }
+            );
+
+            console.log("STATUS:", response.status);
+
+            const text = await response.text();
+
+            console.log("RESPONSE:", text);
+
+        } catch (e) {
+
+            console.error("SAVE SCORE ERROR:", e);
+        }
+
         this.stopGame();
     }
+
     _updateHighScore() {
-        // Main Flow: Update High Score when Game Over
-        // 13.0. Hệ thống lấy điểm hiện tại của người chơi từ model: this.model.score
-        // 13.1. Hệ thống so sánh điểm hiện tại với điểm cao nhất đã lưu (this.hi).
+
         if (this.model.score > this.hi) {
-            // 13.2. Nếu điểm hiện tại lớn hơn điểm cao nhất đã lưu:
-            //       - Cập nhật biến hi trong controller
-            //       - Lưu điểm cao nhất mới vào localStorage
-            //       - Đánh dấu newRecord = true để view có thể hiển thị badge
+
             this.hi = this.model.score;
-            localStorage.setItem('tetris_hi', this.hi); // 13.2.2 Persist to storage
-            this.newRecord = true; // 13.2.3 Mark new record
+
+            localStorage.setItem('tetris_hi', this.hi);
+
+            this.newRecord = true;
         }
-        // 13.3. Nếu không có kỷ lục mới, không ghi vào localStorage và newRecord giữ false.
     }
 
+    // ─────────────────────────────
+    // INPUT HANDLER
+    // ─────────────────────────────
 
+    _onKey(e) {
 
+        if (this.state !== 'playing') {
 
+            if (e.code === 'KeyP' && this.state === 'paused') {
+                this.resume();
+            }
 
+            return;
+        }
 
+        const m = this.model;
 
+        switch (e.code) {
 
+            case 'ArrowLeft':
+                m.moveLeft();
+                break;
 
+            case 'ArrowRight':
+                m.moveRight();
+                break;
+
+            case 'ArrowDown':
+                m.softDrop();
+                this._dropAcc = 0;
+                break;
+
+            case 'ArrowUp':
+            case 'KeyZ':
+                m.rotate(1);
+                break;
+
+            case 'KeyX':
+                m.rotate(-1);
+                break;
+
+            case 'Space':
+                m.hardDrop();
+                break;
+
+            case 'KeyP':
+                this.pause();
+                break;
+
+            default:
+                return;
+        }
+
+        e.preventDefault();
+
+        this._checkGameOver();
+
+        this._syncView();
+    }
+
+    // ─────────────────────────────
+    // GAME LOOP
+    // ─────────────────────────────
+
+    _loop(timestamp) {
+
+        // DỪNG LOOP NẾU KHÔNG PLAYING
+        if (this.state !== 'playing') return;
+
+        const dt = timestamp - this._lastTick;
+
+        this._lastTick = timestamp;
+
+        this._dropAcc += dt;
+
+        const speed = this.model.getDropSpeed();
+
+        let leveledUp = false;
+
+        if (this._dropAcc >= speed) {
+
+            this._dropAcc -= speed;
+
+            const prevLevel = this.model.level;
+
+            if (!this.model._collides(this.model.current, 0, 1)) {
+
+                this.model.current.y++;
+
+            } else {
+
+                this.model._lockPiece();
+
+                if (this.model.level !== prevLevel) {
+                    leveledUp = true;
+                }
+            }
+
+            this._checkGameOver();
+        }
+
+        if (leveledUp) {
+            this.view.flashLevelUp();
+        }
+
+        this._syncView();
+
+        if (this.state === 'playing') {
+
+            this._rafId = requestAnimationFrame(
+                ts => this._loop(ts)
+            );
+        }
+    }
+
+    // ─────────────────────────────
+    // VIEW SYNC
+    // ─────────────────────────────
+
+    _syncView() {
+
+        this.view.render(this.model);
+
+        this.view.renderNext(this.model.next);
+
+        this.view.updateHUD(this.model, this.hi);
+    }
 }
