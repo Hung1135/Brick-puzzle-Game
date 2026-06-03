@@ -311,5 +311,5 @@ export default class GameController {
         );
     }
 
-    
+
 }
