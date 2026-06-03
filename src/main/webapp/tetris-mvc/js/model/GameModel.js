@@ -51,7 +51,11 @@ export default class GameController {
 
     _bindInputs() {
 
+        // 11.0. Hệ thống xử lý thao tác điều khiển từ người chơi.
+
+
         // Lắng nghe bàn phím
+
         document.addEventListener('keydown', e => this._onKey(e));
 
         const startBtn = document.getElementById('start-btn');
@@ -65,11 +69,21 @@ export default class GameController {
 
         if (resumeBtn) {
             startBtn.onclick = () => this.resume();
+
         }
+
+        // 14.4. Hệ thống hiển thị các nút thao tác tiếp theo như Restart hoặc Home
+
+        // (Lắng nghe sự kiện)
 
         if (restartBtn) {
             restartBtn.onclick = () => this.restartGame();
+
         }
+
+        // 14.4. Hệ thống hiển thị các nút thao tác tiếp theo như Restart hoặc Home
+
+        // (Lắng nghe sự kiện)
 
         if (homeBtn) {
             homeBtn.onclick = () => this._returnToMenu();
@@ -107,11 +121,16 @@ export default class GameController {
         this._lastTick = performance.now();
 
         // Hủy loop cũ nếu tồn tại
+
         if (this._rafId) {
             cancelAnimationFrame(this._rafId);
+
         }
+        // 11.0. Hệ thống đang thực hiện vòng lặp trò chơi
+
 
         // Khởi động game loop
+
         this._loop(this._lastTick);
     }
 
@@ -132,29 +151,60 @@ export default class GameController {
 
     stopGame() {
 
+        // 12.1. Hệ thống kiểm tra trạng thái hiện tại của trò chơi.
+
         if (this.state === 'over') return;
+
+        // 11.5. Hệ thống chuyển trò chơi sang trạng thái kết thúc.
+
+        // 12.2. Hệ thống chuyển trạng thái trò chơi sang kết thúc.
 
         this.state = 'over';
 
-        // Dừng game loop
+        // 11.6. Hệ thống dừng vòng lặp cập nhật trò chơi.
+
+        // 12.3. Hệ thống hủy vòng lặp cập nhật cấu hình hiện tại.
+
+        // 12.4. Hệ thống ngăn trò chơi tiếp tục cập nhật dữ liệu và render (hủy loop).
+
         if (this._rafId) {
             cancelAnimationFrame(this._rafId);
         }
 
         // Xóa piece hiện tại khỏi màn hình
         this.model.current = null;
-
         this.view.render(this.model);
 
-        // Cập nhật điểm cao
+        // 11.7. Hệ thống kiểm tra và cập nhật điểm cao nhất nếu người chơi đạt kỷ lục mới.
+
         this._updateHighScore();
 
-        // Hiển thị popup game over
+        // 11.9. Hệ thống hiển thị màn hình Game Over bao gồm: điểm hiện tại, điểm cao nhất, trạng thái kỷ lục mới...
+
+
+        // 14.0. Hệ thống nhận yêu cầu hiển thị màn hình Game Over.
+
+        // 14.1. Hệ thống hiển thị điểm số hiện tại của người chơi.
+
+        // 14.2. Hệ thống hiển thị điểm cao nhất.
+
+        // 14.3. Hệ thống hiển thị trạng thái kỷ lục mới nếu có.
+
+        // 14.4. Hệ thống hiển thị các nút thao tác tiếp theo như Restart hoặc Home.
+
         this.view.showGameOver(
             this.model.score,
             this.hi,
             this.newRecord
         );
+
+
+        // 12.5. Use case UC-12 kết thúc.
+
+
+        // 14.5. Use case UC-14 kết thúc.
+
+
     }
 
     pause() {
@@ -255,80 +305,6 @@ export default class GameController {
         }
     }
 
-    // ─────────────────────────────
-    // INPUT HANDLER
-    // ─────────────────────────────
-
-    _onKey(e) {
-
-        if (this.state !== 'playing') {
-
-            if (e.code === 'KeyP' && this.state === 'paused') {
-                this.resume();
-            }
-
-            return;
-        }
-
-        const m = this.model;
-
-        switch (e.code) {
-
-            // Di chuyển sang trái
-            case 'ArrowLeft':
-                m.moveLeft();
-                break;
-
-            // Di chuyển sang phải
-            case 'ArrowRight':
-                m.moveRight();
-                break;
-
-            // Soft Drop
-            // Tăng tốc độ rơi của khối hiện tại
-            case 'ArrowDown':
-                m.softDrop();
-                this._dropAcc = 0;
-                break;
-
-            // Xoay theo chiều kim đồng hồ
-            case 'ArrowUp':
-            case 'KeyZ':
-                m.rotate(1);
-                break;
-
-            // Xoay ngược chiều kim đồng hồ
-            case 'KeyX':
-                m.rotate(-1);
-                break;
-
-            // Hard Drop
-            // Thả khối xuống đáy ngay lập tức
-            // Sau đó GameModel sẽ:
-            // - Khóa khối vào board
-            // - Kiểm tra hàng đầy
-            // - Xóa hàng (Clear Line)
-            // - Cộng điểm
-            // - Sinh khối mới
-            case 'Space':
-                m.hardDrop();
-                break;
-
-            // Tạm dừng game
-            case 'KeyP':
-                this.pause();
-                break;
-
-            default:
-                return;
-        }
-
-        e.preventDefault();
-
-        this._checkGameOver();
-
-        this._syncView();
-    }
 
     // ─────────────────────────────
     // GAME LOOP
@@ -421,5 +397,80 @@ export default class GameController {
 
         // Cập nhật điểm, level, line, high score
         this.view.updateHUD(this.model, this.hi);
+    }
+
+    // ─────────────────────────────
+    // INPUT HANDLER
+    // ─────────────────────────────
+
+    _onKey(e) {
+
+        if (this.state !== 'playing') {
+
+            if (e.code === 'KeyP' && this.state === 'paused') {
+                this.resume();
+            }
+
+            return;
+        }
+
+        const m = this.model;
+
+        switch (e.code) {
+
+            // Di chuyển sang trái
+            case 'ArrowLeft':
+                m.moveLeft();
+                break;
+
+            // Di chuyển sang phải
+            case 'ArrowRight':
+                m.moveRight();
+                break;
+
+            // Soft Drop
+            // Tăng tốc độ rơi của khối hiện tại
+            case 'ArrowDown':
+                m.softDrop();
+                this._dropAcc = 0;
+                break;
+
+            // Xoay theo chiều kim đồng hồ
+            case 'ArrowUp':
+            case 'KeyZ':
+                m.rotate(1);
+                break;
+
+            // Xoay ngược chiều kim đồng hồ
+            case 'KeyX':
+                m.rotate(-1);
+                break;
+
+            // Hard Drop
+            // Thả khối xuống đáy ngay lập tức
+            // Sau đó GameModel sẽ:
+            // - Khóa khối vào board
+            // - Kiểm tra hàng đầy
+            // - Xóa hàng (Clear Line)
+            // - Cộng điểm
+            // - Sinh khối mới
+            case 'Space':
+                m.hardDrop();
+                break;
+
+            // Tạm dừng game
+            case 'KeyP':
+                this.pause();
+                break;
+
+            default:
+                return;
+        }
+
+        e.preventDefault();
+
+        this._checkGameOver();
+
+        this._syncView();
     }
 }

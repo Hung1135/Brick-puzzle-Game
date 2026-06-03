@@ -3,6 +3,7 @@ import GameView from "../view/GameView.js";
 
 export default class GameController {
 
+
     constructor() {
 
         this.model = new GameModel();
@@ -17,6 +18,7 @@ export default class GameController {
         this._lastTick = 0;
         this._rafId = null;
         this._dropAcc = 0;
+
 
         this.gameOverHandled = false;
 
@@ -62,254 +64,101 @@ export default class GameController {
     // START GAME
     // ─────────────────────────────
     startGame() {
+        // Main Flow: Start Game Loop & Transition to Playing
+        // Implements UC_01 - START GAME
 
-        // UC_01 - START GAME
-
-        // 1.1 Người chơi nhấn Start
+        // 1.1. Người chơi nhấn nút Start → hệ thống nhận yêu cầu bắt đầu trò chơi.
         if (this.state === 'playing') return;
 
-        // 1.2 Khởi tạo lại game
+        // 1.2. Khởi tạo bảng game với lưới ô trống.
+        this.initGame();
+        // 1.3. Sinh block đầu tiên và đặt tại vị trí spawn.
+        this.model.generateFirstBlock();
+
+        // 1.4. Chuyển trạng thái game sang running.
+        this.setGameState('playing');
+        // 1.5. Hiển thị bảng game và block đầu tiên.
+        this.view.renderBoard(this.model);
+
+
+    }
+
+    initGame() {
         this.model.reset();
-
-        // 1.3 Reset các trạng thái
-        this.gameOverHandled = false;
-        this.newRecord = false;
-
-        // 1.4 Chuyển sang trạng thái playing
-        this.state = 'playing';
-
-        // 1.5 Hiển thị game board
         this.view.hideAll();
         this._syncView();
-
-        // 1.6 Khởi động game loop
-        this._dropAcc = 0;
-        this._lastTick = performance.now();
-
-        if (this._rafId) {
-            cancelAnimationFrame(this._rafId);
-        }
-
-        this._loop(this._lastTick);
     }
 
-    // ─────────────────────────────
-    // INPUT HANDLER
-    // ─────────────────────────────
-    _onKey(e) {
 
-        if (this.state !== 'playing') return;
-
-        const m = this.model;
-
-        switch (e.code) {
-
-            case 'ArrowDown':
-
-                /*
-                 * Soft Drop
-                 * Người chơi đẩy khối xuống nhanh hơn.
-                 * Nếu chạm đáy thì _lockPiece()
-                 * sẽ được kích hoạt trong GameModel.
-                 */
-                m.softDrop();
-                this._dropAcc = 0;
-                break;
-
-            case 'Space':
-
-                /*
-                 * Hard Drop
-                 * Thả khối xuống đáy ngay lập tức.
-                 * Sau đó:
-                 * - Khóa khối
-                 * - Kiểm tra hàng đầy
-                 * - Clear Line
-                 * - Cộng điểm
-                 */
-                m.hardDrop();
-                break;
-
-            default:
-                return;
-        }
-
-        e.preventDefault();
-
-        this._checkGameOver();
-
-        this._syncView();
+    setGameState(state) {
+        this.state = state;
+        this.gameOverHandled = false;
+        this.newRecord = false;
     }
 
-    // ─────────────────────────────
-    // GAME LOOP
-    // ─────────────────────────────
-    _loop(timestamp) {
 
-        if (this.state !== 'playing') return;
 
-        const dt = timestamp - this._lastTick;
+    stopGame() {
+        // Main Flow: Stop Game Loop & Transition to Game Over
+        if (this.state === 'over') return;
+        // 12.2. Hệ thống chuyển trạng thái trò chơi sang kết thúc.
+        this.state = 'over';
 
-        this._lastTick = timestamp;
+        // 12.3. Hệ thống hủy vòng lặp cập nhật khung hình hiện tại.
+        if (this._rafId) cancelAnimationFrame(this._rafId);
 
-        this._dropAcc += dt;
+        // 12.4. Hệ thống ngăn trò chơi tiếp tục cập nhật dữ liệu và render.
+        // (Được thực hiện bởi hai hành động trên: state==='over' và cancelAnimationFrame)
 
-        const speed = this.model.getDropSpeed();
+        // 13.x: Xử lý bản ghi cao nhất (chi tiết ở _updateHighScore)
+        // The detailed steps are implemented in _updateHighScore():
+        //  - 13.0: lấy điểm hiện tại từ model
+        //  - 13.1: so sánh với this.hi
+        //  - 13.2: nếu lớn hơn -> cập nhật this.hi, localStorage, this.newRecord
+        //  - 13.3: nếu không -> giữ nguyên (no write)
+        this._updateHighScore();
 
-        let leveledUp = false;
-
-        if (this._dropAcc >= speed) {
-
-            this._dropAcc -= speed;
-
-            const prevLevel = this.model.level;
-
-            // Nếu còn khoảng trống phía dưới
-            if (!this.model._collides(this.model.current, 0, 1)) {
-
-                this.model.current.y++;
-
-            } else {
-
-                /*
-                 * KHỐI CHẠM ĐẤT
-                 *
-                 * _lockPiece() sẽ:
-                 *
-                 * 1. Gắn khối hiện tại vào board
-                 * 2. Kiểm tra các hàng đầy
-                 * 3. Xóa hàng đầy (Clear Line)
-                 * 4. Dồn các hàng phía trên xuống
-                 * 5. Cập nhật score
-                 * 6. Cập nhật lines
-                 * 7. Kiểm tra tăng level
-                 * 8. Sinh khối mới
-                 * 9. Kiểm tra game over
-                 */
-                this.model._lockPiece();
-
-                // Nếu sau khi clear line level thay đổi
-                if (this.model.level !== prevLevel) {
-                    leveledUp = true;
-                }
-            }
-
-            this._checkGameOver();
-        }
-
-        // Hiệu ứng lên cấp sau khi xóa đủ line
-        if (leveledUp) {
-            this.view.flashLevelUp();
-        }
-
-        this._syncView();
-
-        if (this.state === 'playing') {
-            this._rafId = requestAnimationFrame(
-                ts => this._loop(ts)
-            );
-        }
+        // 14.1. Hệ thống hiển thị màn Game Over với số điểm cuối cùng, điểm cao nhất và cờ kỷ lục mới.
+        this.view.showGameOver(this.model.score, this.hi, this.newRecord);
     }
-
-    // ─────────────────────────────
-    // GAME OVER
-    // ─────────────────────────────
     _checkGameOver() {
+        // 11.0. Trigger: Được gọi sau khi model thay đổi (lock/spawn hoặc sau input).
+        // 11.1. Hệ thống kiểm tra cờ `model.gameOver`.
 
-        // UC_11
-
-        if (this.gameOverHandled) return;
-
-        // 11.1 Kiểm tra cờ gameOver từ model
         if (this.model.gameOver) {
-
-            // 11.2 Đánh dấu đã xử lý
-            this.gameOverHandled = true;
-
-            // 11.3 Chuyển sang xử lý Game Over
+            // 11.2. Nếu true -> chuyển sang handler xử lý Game Over.
             this.handleGameOver();
         }
     }
-
     handleGameOver() {
-
-        // UC_11.3
-        // Chuyển tiếp sang stopGame()
-
+        // Main Flow: Handle Game Over (delegates to stop)
+        // Implements UC_11.3: Handler chuyển tiếp các bước dừng game và hiển thị.
+        // 11.3. Handler: ủy quyền cho stopGame() để thực hiện các bước dừng game,
+        //        cập nhật điểm cao và hiển thị giao diện Game Over.
         this.stopGame();
     }
-
-    stopGame() {
-
-        // UC_12
-
-        if (this.state === 'over') return;
-
-        // 12.2 Chuyển trạng thái game sang over
-        this.state = 'over';
-
-        // 12.3 Dừng game loop
-        if (this._rafId) {
-            cancelAnimationFrame(this._rafId);
-        }
-
-        // UC_13
-        this._updateHighScore();
-
-        // UC_14
-        this.view.showGameOver(
-            this.model.score,
-            this.hi,
-            this.newRecord
-        );
-    }
-
-    // ─────────────────────────────
-    // HIGH SCORE
-    // ─────────────────────────────
     _updateHighScore() {
-
-        // 13.0 Lấy điểm hiện tại
-
-        // 13.1 So sánh với điểm cao nhất
+        // Main Flow: Update High Score when Game Over
+        // 13.0. Hệ thống lấy điểm hiện tại của người chơi từ model: this.model.score
+        // 13.1. Hệ thống so sánh điểm hiện tại với điểm cao nhất đã lưu (this.hi).
         if (this.model.score > this.hi) {
-
-            // 13.2 Cập nhật kỷ lục mới
+            // 13.2. Nếu điểm hiện tại lớn hơn điểm cao nhất đã lưu:
+            //       - Cập nhật biến hi trong controller
+            //       - Lưu điểm cao nhất mới vào localStorage
+            //       - Đánh dấu newRecord = true để view có thể hiển thị badge
             this.hi = this.model.score;
-
-            localStorage.setItem(
-                'tetris_hi',
-                this.hi
-            );
-
-            this.newRecord = true;
+            localStorage.setItem('tetris_hi', this.hi); // 13.2.2 Persist to storage
+            this.newRecord = true; // 13.2.3 Mark new record
         }
-
-        // 13.3 Nếu không cao hơn thì giữ nguyên
+        // 13.3. Nếu không có kỷ lục mới, không ghi vào localStorage và newRecord giữ false.
     }
 
-    // ─────────────────────────────
-    // VIEW SYNC
-    // ─────────────────────────────
-    _syncView() {
 
-        /*
-         * Sau khi Clear Line:
-         * - Board thay đổi
-         * - Score thay đổi
-         * - Lines thay đổi
-         * - Level có thể thay đổi
-         *
-         * Toàn bộ dữ liệu sẽ được cập nhật lên giao diện.
-         */
 
-        this.view.render(this.model);
 
-        this.view.updateHUD(
-            this.model,
-            this.hi
-        );
-    }
+
+
+
 
 
 }
