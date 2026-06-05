@@ -237,16 +237,24 @@ export default class GameController {
 
     _checkGameOver() {
 
-        // Đã xử lý game over thì bỏ qua
+        // Tránh xử lý trùng lặp khi Game Over đã được kích hoạt
+
         if (this.gameOverHandled) return;
+
+        // 11.4. Trigger / Hệ thống nhận diện khu vực spawn block đã bị chiếm chỗ và không thể tạo block mới (Thông qua model.gameOver).
 
         if (this.model.gameOver) {
 
             // Đánh dấu đã xử lý để tránh gọi nhiều lần
             this.gameOverHandled = true;
 
+            // Tiến hành kích hoạt chuỗi xử lý kết thúc game
             this.handleGameOver();
+
         }
+
+        // 11A.1 — Alternative Flow: Nếu khu vực spawn vẫn còn hợp lệ -> Trò chơi tiếp tục hoạt động bình thường.
+
     }
 
     async handleGameOver() {
