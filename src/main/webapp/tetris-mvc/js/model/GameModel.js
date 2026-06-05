@@ -1,476 +1,214 @@
-import GameModel from "../model/GameModel.js";
-import GameView from "../view/GameView.js";
+import { COLS, ROWS, TETROMINOES, SCORE_TABLE, SPEEDS } from "../constants.js";
 
-export default class GameController {
+export default class GameModel {
+  constructor() {
+    this.reset();
+  }
 
-    constructor() {
+  // ─────────────────────────────
+  // INIT
+  // ─────────────────────────────
+  reset() {
+    this.board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+    this.score = 0;
+    this.lines = 0;
+    this.level = 1;
+    this.gameOver = false;
 
-        // Khởi tạo model chứa toàn bộ dữ liệu và logic game
-        this.model = new GameModel();
+    this.current = null;
+    this.next = null;
 
-        // Khởi tạo view chịu trách nhiệm hiển thị giao diện
-        this.view = new GameView();
+    this._bag = [];
+    this._fillBag();
 
-        // Trạng thái game:
-        // start   : màn hình bắt đầu
-        // playing : đang chơi
-        // paused  : tạm dừng
-        // over    : game over
-        this.state = 'start';
+    this.next = this._nextPiece();
+    this._spawnPiece();
+  }
 
-        // Lấy điểm cao nhất từ localStorage
-        this.hi = parseInt(localStorage.getItem('tetris_hi') || '0');
+  // ─────────────────────────────
+  // BAG SYSTEM
+  // ─────────────────────────────
+  _fillBag() {
+    this._bag = [...Array(TETROMINOES.length).keys()];
+    for (let i = this._bag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [this._bag[i], this._bag[j]] = [this._bag[j], this._bag[i]];
+    }
+  }
 
-        // Cờ đánh dấu có phá kỷ lục hay không
-        this.newRecord = false;
+  _nextPiece() {
+    if (this._bag.length === 0) this._fillBag();
 
-        // Biến hỗ trợ game loop
-        this._lastTick = 0;
-        this._rafId = null;
-        this._dropAcc = 0;
+    const idx = this._bag.pop();
+    const t = TETROMINOES[idx];
 
-        // Tránh gọi game over nhiều lần
-        this.gameOverHandled = false;
+    return {
+      shape: t.shape.map(r => [...r]),
+      color: t.color,
+      x: Math.floor(COLS / 2) - Math.floor(t.shape[0].length / 2),
+      y: 0,
+    };
+  }
 
-        // Đăng ký các sự kiện bàn phím và nút bấm
-        this._bindInputs();
+  _spawnPiece() {
+    this.current = this.next;
+    this.next = this._nextPiece();
 
-        // Hiển thị màn hình bắt đầu
-        this.view.showStart();
+    if (this._collides(this.current, 0, 0)) {
+      this.gameOver = true;
+    }
+  }
 
-        // Cập nhật HUD
-        this.view.updateHUD(this.model, this.hi);
+  // ─────────────────────────────
+  // COLLISION
+  // ─────────────────────────────
+  _collides(piece, dx, dy, shape) {
+    const s = shape || piece.shape;
 
-        this.contextPath = window.location.pathname
-            .split("/tetris-mvc")[0];
+    for (let r = 0; r < s.length; r++) {
+      for (let c = 0; c < s[r].length; c++) {
+        if (!s[r][c]) continue;
+
+        const nx = piece.x + c + dx;
+        const ny = piece.y + r + dy;
+
+        if (nx < 0 || nx >= COLS || ny >= ROWS) return true;
+        if (ny >= 0 && this.board[ny][nx]) return true;
+      }
+    }
+    return false;
+  }
+
+  // ─────────────────────────────
+  // ROTATE
+  // ─────────────────────────────
+  _rotate(shape, dir = 1) {
+    const N = shape.length;
+    const M = shape[0].length;
+    const res = Array.from({ length: M }, () => Array(N).fill(0));
+
+    for (let r = 0; r < N; r++)
+      for (let c = 0; c < M; c++)
+        if (dir === 1)
+          res[c][N - 1 - r] = shape[r][c];
+        else
+          res[M - 1 - c][r] = shape[r][c];
+
+    return res;
+  }
+
+  rotate(dir = 1) {
+    const rotated = this._rotate(this.current.shape, dir);
+    const kicks = [0, -1, 1, -2, 2];
+
+    for (const k of kicks) {
+      if (!this._collides(this.current, k, 0, rotated)) {
+        this.current.shape = rotated;
+        this.current.x += k;
+        return;
+      }
+    }
+  }
+
+  // ─────────────────────────────
+  // MOVE
+  // ─────────────────────────────
+  moveLeft() {
+    if (!this._collides(this.current, -1, 0)) {
+      this.current.x--;
+    }
+  }
+
+  moveRight() {
+    if (!this._collides(this.current, 1, 0)) {
+      this.current.x++;
+    }
+  }
+
+  softDrop() {
+    if (!this._collides(this.current, 0, 1)) {
+      this.current.y++;
+      this.score += 1;
+      return false;
     }
 
-    // ─────────────────────────────
-    // INPUT
-    // ─────────────────────────────
+    this._lockPiece();
+    return true;
+  }
 
-    _bindInputs() {
-
-        // 11.0. Hệ thống xử lý thao tác điều khiển từ người chơi.
-
-
-        // Lắng nghe bàn phím
-
-        document.addEventListener('keydown', e => this._onKey(e));
-
-        const startBtn = document.getElementById('start-btn');
-        const resumeBtn = document.getElementById('resume-btn');
-        const restartBtn = document.getElementById('restart-btn');
-        const homeBtn = document.getElementById('home-btn');
-
-        if (startBtn) {
-            startBtn.onclick = () => this.startGame();
-        }
-
-        if (resumeBtn) {
-            startBtn.onclick = () => this.resume();
-
-        }
-
-        // 14.4. Hệ thống hiển thị các nút thao tác tiếp theo như Restart hoặc Home
-
-        // (Lắng nghe sự kiện)
-
-        if (restartBtn) {
-            restartBtn.onclick = () => this.restartGame();
-
-        }
-
-        // 14.4. Hệ thống hiển thị các nút thao tác tiếp theo như Restart hoặc Home
-
-        // (Lắng nghe sự kiện)
-
-        if (homeBtn) {
-            homeBtn.onclick = () => this._returnToMenu();
-        }
+  hardDrop() {
+    let dist = 0;
+    while (!this._collides(this.current, 0, dist + 1)) {
+      dist++;
     }
 
-    // ─────────────────────────────
-    // GAME FLOW
-    // ─────────────────────────────
+    this.current.y += dist;
+    this.score += dist * 2;
 
-    startGame() {
+    this._lockPiece();
+  }
 
-        // Nếu đang chơi thì không cho start lại
-        if (this.state === 'playing') return;
+  // ─────────────────────────────
+  // LOCK + CLEAR
+  // ─────────────────────────────
+  _lockPiece() {
+    const { shape, x, y, color } = this.current;
 
-        // Reset toàn bộ dữ liệu game
-        this.model.reset();
+    for (let r = 0; r < shape.length; r++) {
+      for (let c = 0; c < shape[r].length; c++) {
+        if (!shape[r][c]) continue;
 
-        // Reset cờ game over
-        this.gameOverHandled = false;
-
-        this.state = 'playing';
-
-        this.newRecord = false;
-
-        // Ẩn các popup
-        this.view.hideAll();
-
-        // Render giao diện ban đầu
-        this._syncView();
-
-        // Reset bộ đếm thời gian rơi
-        this._dropAcc = 0;
-
-        this._lastTick = performance.now();
-
-        // Hủy loop cũ nếu tồn tại
-
-        if (this._rafId) {
-            cancelAnimationFrame(this._rafId);
-
-        }
-        // 11.0. Hệ thống đang thực hiện vòng lặp trò chơi
-
-
-        // Khởi động game loop
-
-        this._loop(this._lastTick);
-    }
-
-    restartGame() {
-
-        // Chỉ cho restart khi game over
-        if (this.state !== 'over') return;
-
-        this.startGame();
-    }
-
-    _returnToMenu() {
-
-        this.stopGame();
-
-        this.view.showStart();
-    }
-
-    stopGame() {
-
-        // 12.1. Hệ thống kiểm tra trạng thái hiện tại của trò chơi.
-
-        if (this.state === 'over') return;
-
-        // 11.5. Hệ thống chuyển trò chơi sang trạng thái kết thúc.
-
-        // 12.2. Hệ thống chuyển trạng thái trò chơi sang kết thúc.
-
-        this.state = 'over';
-
-        // 11.6. Hệ thống dừng vòng lặp cập nhật trò chơi.
-
-        // 12.3. Hệ thống hủy vòng lặp cập nhật cấu hình hiện tại.
-
-        // 12.4. Hệ thống ngăn trò chơi tiếp tục cập nhật dữ liệu và render (hủy loop).
-
-        if (this._rafId) {
-            cancelAnimationFrame(this._rafId);
+        const ny = y + r;
+        if (ny < 0) {
+          this.gameOver = true;
+          return;
         }
 
-        // Xóa piece hiện tại khỏi màn hình
-        this.model.current = null;
-        this.view.render(this.model);
-
-        // 11.7. Hệ thống kiểm tra và cập nhật điểm cao nhất nếu người chơi đạt kỷ lục mới.
-
-        this._updateHighScore();
-
-        // 11.9. Hệ thống hiển thị màn hình Game Over bao gồm: điểm hiện tại, điểm cao nhất, trạng thái kỷ lục mới...
-
-
-        // 14.0. Hệ thống nhận yêu cầu hiển thị màn hình Game Over.
-
-        // 14.1. Hệ thống hiển thị điểm số hiện tại của người chơi.
-
-        // 14.2. Hệ thống hiển thị điểm cao nhất.
-
-        // 14.3. Hệ thống hiển thị trạng thái kỷ lục mới nếu có.
-
-        // 14.4. Hệ thống hiển thị các nút thao tác tiếp theo như Restart hoặc Home.
-
-        this.view.showGameOver(
-            this.model.score,
-            this.hi,
-            this.newRecord
-        );
-
-
-        // 12.5. Use case UC-12 kết thúc.
-
-
-        // 14.5. Use case UC-14 kết thúc.
-
-
+        this.board[ny][x + c] = color;
+      }
     }
 
-    pause() {
+    const cleared = this._clearLines();
+    this._addScore(cleared);
+    this._spawnPiece();
+  }
 
-        if (this.state !== 'playing') return;
+  _clearLines() {
+    let count = 0;
 
-        this.state = 'paused';
-
-        cancelAnimationFrame(this._rafId);
-
-        this.view.showPause();
+    for (let r = ROWS - 1; r >= 0; r--) {
+      if (this.board[r].every(cell => cell !== null)) {
+        this.board.splice(r, 1);
+        this.board.unshift(Array(COLS).fill(null));
+        count++;
+        r++;
+      }
     }
 
-    resume() {
+    return count;
+  }
 
-        if (this.state !== 'paused') return;
+  _addScore(lines) {
+    if (lines === 0) return;
 
-        this.state = 'playing';
+    this.score += (SCORE_TABLE[lines] || 800) * this.level;
+    this.lines += lines;
 
-        this.view.hideAll();
+    this.level = Math.floor(this.lines / 10) + 1;
+  }
 
-        this._lastTick = performance.now();
-
-        this._loop(this._lastTick);
+  // ─────────────────────────────
+  // UTIL
+  // ─────────────────────────────
+  getGhostY() {
+    let dist = 0;
+    while (!this._collides(this.current, 0, dist + 1)) {
+      dist++;
     }
-
-    // ─────────────────────────────
-    // GAME OVER
-    // ─────────────────────────────
-
-    _checkGameOver() {
-
-        // Đã xử lý game over thì bỏ qua
-        if (this.gameOverHandled) return;
-
-        if (this.model.gameOver) {
-
-            // Đánh dấu đã xử lý để tránh gọi nhiều lần
-            this.gameOverHandled = true;
-
-            this.handleGameOver();
-        }
-    }
-
-    async handleGameOver() {
-
-        console.log("GAME OVER FUNCTION RUNNING");
-
-        try {
-
-            // Gửi điểm lên server
-            const response = await fetch(
-                `${window.CONTEXT_PATH}/save-score`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        score: this.model.score,
-
-                        level: this.model.level,
-
-                        linesCleared: this.model.lines,
-
-                        playTimeSeconds: 120
-                    })
-                }
-            );
-
-            console.log("STATUS:", response.status);
-
-            const text = await response.text();
-
-            console.log("RESPONSE:", text);
-
-        } catch (e) {
-
-            console.error("SAVE SCORE ERROR:", e);
-        }
-
-        this.stopGame();
-    }
-
-    _updateHighScore() {
-
-        // Nếu điểm hiện tại lớn hơn điểm cao nhất
-        if (this.model.score > this.hi) {
-
-            this.hi = this.model.score;
-
-            localStorage.setItem('tetris_hi', this.hi);
-
-            this.newRecord = true;
-        }
-    }
-
-
-    // ─────────────────────────────
-    // GAME LOOP
-    // ─────────────────────────────
-
-    _loop(timestamp) {
-
-        if (this.state !== 'playing') return;
-
-        const dt = timestamp - this._lastTick;
-
-        this._lastTick = timestamp;
-
-        // Tích lũy thời gian rơi
-        this._dropAcc += dt;
-
-        // Lấy tốc độ rơi theo level hiện tại
-        const speed = this.model.getDropSpeed();
-
-        let leveledUp = false;
-
-        // Đã đến thời điểm khối phải rơi
-        if (this._dropAcc >= speed) {
-
-            this._dropAcc -= speed;
-
-            const prevLevel = this.model.level;
-
-            // Nếu bên dưới còn trống thì tiếp tục rơi
-            if (!this.model._collides(this.model.current, 0, 1)) {
-
-                this.model.current.y++;
-
-            } else {
-
-                /*
-                 * Khối đã chạm đáy hoặc chạm khối khác
-                 *
-                 * _lockPiece() trong GameModel sẽ:
-                 *
-                 * 1. Gắn khối hiện tại vào board
-                 * 2. Kiểm tra các hàng đã đầy
-                 * 3. Xóa hàng đầy (Clear Line)
-                 * 4. Dồn các hàng phía trên xuống
-                 * 5. Cập nhật điểm
-                 * 6. Tăng số line đã xóa
-                 * 7. Kiểm tra tăng level
-                 * 8. Sinh piece mới
-                 * 9. Kiểm tra game over
-                 */
-                this.model._lockPiece();
-
-                // Nếu clear line làm tăng level
-                if (this.model.level !== prevLevel) {
-                    leveledUp = true;
-                }
-            }
-
-            this._checkGameOver();
-        }
-
-        // Hiệu ứng Level Up sau khi clear đủ line
-        if (leveledUp) {
-            this.view.flashLevelUp();
-        }
-
-        // Đồng bộ dữ liệu lên giao diện
-        this._syncView();
-
-        // Tiếp tục game loop
-        if (this.state === 'playing') {
-
-            this._rafId = requestAnimationFrame(
-                ts => this._loop(ts)
-            );
-        }
-    }
-
-    // ─────────────────────────────
-    // VIEW SYNC
-    // ─────────────────────────────
-
-    _syncView() {
-
-        // Render board
-        this.view.render(this.model);
-
-        // Render khối tiếp theo
-        this.view.renderNext(this.model.next);
-
-        // Cập nhật điểm, level, line, high score
-        this.view.updateHUD(this.model, this.hi);
-    }
-
-    // ─────────────────────────────
-    // INPUT HANDLER
-    // ─────────────────────────────
-
-    _onKey(e) {
-
-        if (this.state !== 'playing') {
-
-            if (e.code === 'KeyP' && this.state === 'paused') {
-                this.resume();
-            }
-
-            return;
-        }
-
-        const m = this.model;
-
-        switch (e.code) {
-
-            // Di chuyển sang trái
-            case 'ArrowLeft':
-                m.moveLeft();
-                break;
-
-            // Di chuyển sang phải
-            case 'ArrowRight':
-                m.moveRight();
-                break;
-
-            // Soft Drop
-            // Tăng tốc độ rơi của khối hiện tại
-            case 'ArrowDown':
-                m.softDrop();
-                this._dropAcc = 0;
-                break;
-
-            // Xoay theo chiều kim đồng hồ
-            case 'ArrowUp':
-            case 'KeyZ':
-                m.rotate(1);
-                break;
-
-            // Xoay ngược chiều kim đồng hồ
-            case 'KeyX':
-                m.rotate(-1);
-                break;
-
-            // Hard Drop
-            // Thả khối xuống đáy ngay lập tức
-            // Sau đó GameModel sẽ:
-            // - Khóa khối vào board
-            // - Kiểm tra hàng đầy
-            // - Xóa hàng (Clear Line)
-            // - Cộng điểm
-            // - Sinh khối mới
-            case 'Space':
-                m.hardDrop();
-                break;
-
-            // Tạm dừng game
-            case 'KeyP':
-                this.pause();
-                break;
-
-            default:
-                return;
-        }
-
-        e.preventDefault();
-
-        this._checkGameOver();
-
-        this._syncView();
-    }
+    return this.current.y + dist;
+  }
+
+  getDropSpeed() {
+    return SPEEDS[Math.min(this.level - 1, SPEEDS.length - 1)];
+  }
 }

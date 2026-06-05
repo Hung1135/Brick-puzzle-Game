@@ -145,9 +145,4 @@ public class UserDAO {
                         .findFirst()
         );
     }
-    public static void main(String[] args) {
-        UserDAO userDAO = new UserDAO();
-        User user = userDAO.findById(1L).get();
-        System.out.println(user);
-    }
 }
