@@ -13,11 +13,32 @@
       <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/checksums/checksums.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/checksums/md5-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/checksums/md5-checksums.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/checksums/sha1-checksums.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/4d6e21de-c534-4b23-8874-06ab9fd06c65/.globals.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/4d6e21de-c534-4b23-8874-06ab9fd06c65/.strings.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/4d6e21de-c534-4b23-8874-06ab9fd06c65/_.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/4d6e21de-c534-4b23-8874-06ab9fd06c65/buildfingerprint.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/4d6e21de-c534-4b23-8874-06ab9fd06c65/classloaderscopes.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/4d6e21de-c534-4b23-8874-06ab9fd06c65/entry.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/4d6e21de-c534-4b23-8874-06ab9fd06c65/projectfingerprint.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/4d6e21de-c534-4b23-8874-06ab9fd06c65/work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/5rtnkjerl3v93rh28kfzwibbl/candidates.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/configuration-cache/5rtnkjerl3v93rh28kfzwibbl/candidates.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/88ck579vhjm31rs9wbupsl5az/candidates.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/configuration-cache/88ck579vhjm31rs9wbupsl5az/candidates.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/b6f86db1-c288-47bc-9b14-74b219448dc7/.globals.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/b6f86db1-c288-47bc-9b14-74b219448dc7/.strings.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/b6f86db1-c288-47bc-9b14-74b219448dc7/_.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/b6f86db1-c288-47bc-9b14-74b219448dc7/buildfingerprint.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/b6f86db1-c288-47bc-9b14-74b219448dc7/classloaderscopes.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/b6f86db1-c288-47bc-9b14-74b219448dc7/entry.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/b6f86db1-c288-47bc-9b14-74b219448dc7/projectfingerprint.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/b6f86db1-c288-47bc-9b14-74b219448dc7/work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/file-system.probe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/controller/GameController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/controller/GameController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/model/GameModel.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/model/GameModel.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/db.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/db.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,12 +99,12 @@
     &quot;assignee&quot;: &quot;Hung1135&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Hung1135/Brick-puzzle-Game.git",
-    "accountId": "fdb90063-3f62-4ea5-8c22-e8a783e7ff26"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Hung1135/Brick-puzzle-Game.git&quot;,
+    &quot;accountId&quot;: &quot;8091f569-ac5a-4f78-a787-c803c1f67a99&quot;
   }
-}]]></component>
+}</component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/src/main/java/vn/edu/hcmuaf/fit/ttltw_nhom6/controller/HistoryServlet.java" root0="FORCE_HIGHLIGHTING" />
   </component>
@@ -106,39 +127,38 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Gradle.Brick-puzzle-Game [:vn.edu.hcmuaf.fit.ttltw_nhom6.dao.UserDAO.main()].executor": "Run",
-    "Gradle.Brick-puzzle-Game [:vn.edu.hcmuaf.fit.ttltw_nhom6.db.JdbiConnector.main()].executor": "Run",
-    "Gradle.Build Brick-puzzle-Game.executor": "Run",
-    "Gradle.Build TTLTW_Nhom6 For Git.executor": "Run",
-    "Gradle.Build TTLTW_Nhom6.executor": "Run",
-    "Gradle.TTLTW_Nhom6 For Git [:vn.edu.hcmuaf.fit.ttltw_nhom6.db.JdbiConnector.main()].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Tomcat Server.Tomcat 10.1.48.executor": "Run",
-    "Tomcat Server.index.jsp.executor": "Run",
-    "Tomcat Server.productManagement.jsp.executor": "Run",
-    "disable.download.node.interpreter.editor.notification": "true",
-    "git-widget-placeholder": "Phuocdepzai",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/hoc tap/puzzle/Brick-puzzle-Game",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15820312",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.Brick-puzzle-Game [:vn.edu.hcmuaf.fit.ttltw_nhom6.dao.UserDAO.main()].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Brick-puzzle-Game [:vn.edu.hcmuaf.fit.ttltw_nhom6.db.JdbiConnector.main()].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Build Brick-puzzle-Game.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Build TTLTW_Nhom6 For Git.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Build TTLTW_Nhom6.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.TTLTW_Nhom6 For Git [:vn.edu.hcmuaf.fit.ttltw_nhom6.db.JdbiConnector.main()].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Tomcat Server.Tomcat 10.1.48.executor&quot;: &quot;Run&quot;,
+    &quot;Tomcat Server.index.jsp.executor&quot;: &quot;Run&quot;,
+    &quot;Tomcat Server.productManagement.jsp.executor&quot;: &quot;Run&quot;,
+    &quot;disable.download.node.interpreter.editor.notification&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;hung&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/hoc tap/puzzle/Brick-puzzle-Game&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15820312&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\HUNG\Downloads\TTLTW_Nhom6 For Git\src\main\webapp" />
@@ -315,8 +335,13 @@
       <workItem from="1779980439827" duration="5000" />
       <workItem from="1779980985430" duration="99000" />
       <workItem from="1780062750979" duration="1690000" />
-      <workItem from="1780215463155" duration="3935000" />
-      <workItem from="1780314329456" duration="1040000" />
+      <workItem from="1780215463155" duration="4358000" />
+      <workItem from="1780220027063" duration="56000" />
+      <workItem from="1780220089455" duration="323000" />
+      <workItem from="1780294575388" duration="7000" />
+      <workItem from="1780500931791" duration="20000" />
+      <workItem from="1780580554431" duration="45000" />
+      <workItem from="1780660910462" duration="2050000" />
     </task>
     <servers />
   </component>

@@ -61,8 +61,7 @@ public class UserRegisterServlet extends HttpServlet {
 
         // Đăng ký
         boolean success = userDAO.register(user);
-        System.out.println("REGISTER START");
-        System.out.println("Email = " + email);
+
         if (success) {
             request.setAttribute("success", "Đăng ký thành công!");
             request.getRequestDispatcher("/tetris-mvc/public/login.jsp")

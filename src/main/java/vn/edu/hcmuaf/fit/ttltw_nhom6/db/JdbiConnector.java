@@ -7,22 +7,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class JdbiConnector {
-
+public class
+JdbiConnector {
     private static Jdbi jdbi;
 
-    public static synchronized Jdbi get() {
-        try { Class.forName("com.mysql.cj.jdbc.Driver"); System.out.println("Driver OK"); } catch (Exception e) { e.printStackTrace(); }
+    public static Jdbi get() {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
         if (jdbi == null) {
             jdbi = Jdbi.create(
-                    "jdbc:mysql://" + DBProperties.host() + ":" + DBProperties.port() + "/" + DBProperties.database()
-                            + "?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh",
+                    "jdbc:mysql://" + DBProperties.host() + ":" + DBProperties.port() + "/" + DBProperties.database(),
                     DBProperties.username(),
                     DBProperties.password()
             );
+
+
             jdbi.installPlugin(new SqlObjectPlugin());
         }
-
         return jdbi;
     }
 
@@ -32,11 +37,11 @@ public class JdbiConnector {
         static {
             try (InputStream is = DBProperties.class.getClassLoader().getResourceAsStream("db.properties")) {
                 if (is == null) {
-                    throw new RuntimeException("File 'db.properties' not found in classpath!");
+                    throw new RuntimeException("File 'vn.edu.hcmuaf.fit.ltw_nhom5.resources.db.properties' not found in classpath!");
                 }
                 prop.load(is);
             } catch (IOException e) {
-                throw new RuntimeException("Failed to load db.properties", e);
+                throw new RuntimeException("Failed to load vn.edu.hcmuaf.fit.ltw_nhom5.db.properties", e);
             }
         }
 
@@ -62,22 +67,12 @@ public class JdbiConnector {
     }
 
     public static void main(String[] args) {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            System.out.println("Driver OK");
-
-            Jdbi jdbi = get();
-
-            jdbi.useHandle(handle -> {
-                String result = handle.createQuery("SELECT 'CONNECTED'")
-                        .mapTo(String.class)
-                        .one();
-
-                System.out.println(result);
-            });
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        System.out.println("Host: " + DBProperties.host());
+        System.out.println("Port: " + DBProperties.port());
+        System.out.println("Database: " + DBProperties.database());
+        System.out.println("Username: " + DBProperties.username());
+        System.out.println("Password: " + DBProperties.password());
+        Jdbi jdbi = get();
+        System.out.println("Kết nối DB OK: " + jdbi);
     }
 }

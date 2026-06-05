@@ -291,6 +291,11 @@ export default class GameController {
             const text = await response.text();
 
             console.log("RESPONSE:", text);
+  // ─────────────────────────────
+  // COLLISION
+  // ─────────────────────────────
+  _collides(piece, dx, dy, shape) {
+    const s = shape || piece.shape;
 
         } catch (e) {
 
