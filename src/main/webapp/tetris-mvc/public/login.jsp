@@ -32,7 +32,7 @@
         <form action="${pageContext.request.contextPath}/login" method="post">
 
             <div class="input-group">
-                <label>Email hoặc tên đăng nhập</label>
+                <label>Email</label>
                 <input type="email"
                        name="email"
                        placeholder="Nhập email"
