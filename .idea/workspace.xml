@@ -9,9 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b3eb82bf-75bf-43a1-b0eb-7ea4e25dec1e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="b3eb82bf-75bf-43a1-b0eb-7ea4e25dec1e" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -54,6 +52,7 @@
         <option value="Listener" />
         <option value="Class" />
         <option value="Servlet" />
+        <option value="JavaScript File" />
       </list>
     </option>
   </component>
@@ -136,6 +135,7 @@
       <recent name="C:\Users\HUNG\Downloads\TTLTW_Nhom6 For Git\src\main\webapp" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\hoc tap\puzzle\Brick-puzzle-Game\src\main\webapp\tetris-mvc\js\test" />
       <recent name="C:\Users\HUNG\Downloads\TTLTW_Nhom6 For Git\src\main\webapp\tetris-mvc\public" />
       <recent name="C:\Users\HUNG\Downloads\TTLTW_Nhom6 For Git\src\main\webapp\tetris-mvc" />
     </key>
@@ -313,6 +313,7 @@
       <workItem from="1780294575388" duration="7000" />
       <workItem from="1780500931791" duration="20000" />
       <workItem from="1780580554431" duration="45000" />
+      <workItem from="1780637560567" duration="2714000" />
     </task>
     <servers />
   </component>
