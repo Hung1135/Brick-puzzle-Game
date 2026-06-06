@@ -277,20 +277,24 @@ export default class GameController {
         switch (e.code) {
 
             case 'ArrowLeft':
+            case 'KeyA':
                 m.moveLeft();
                 break;
 
             case 'ArrowRight':
+            case 'KeyD':
                 m.moveRight();
                 break;
 
             case 'ArrowDown':
+            case 'KeyS':
                 m.softDrop();
                 this._dropAcc = 0;
                 break;
 
             case 'ArrowUp':
             case 'KeyZ':
+            case 'KeyW':
                 m.rotate(1);
                 break;
 
