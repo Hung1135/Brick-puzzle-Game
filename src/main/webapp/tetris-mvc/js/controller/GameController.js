@@ -64,25 +64,40 @@ export default class GameController {
     // GAME FLOW
     // ─────────────────────────────
 
+    // Main Flow: Start Game Loop & Transition to Playing
+    // Implements UC-03 - START GAME
     startGame() {
 
+        // Guard: không cho phép start khi đang chơi
         if (this.state === 'playing') return;
 
+        // UC-03 Step 1.1: Người chơi nhấn nút Start → hệ thống nhận yêu cầu bắt đầu trò chơi
+        // (trigger đến từ button onclick hoặc restartGame() - đã xử lý ở _bindInputs)
+
+        // UC-03 Step 1.2: Khởi tạo bảng game với lưới ô trống
+        // UC-03 Step 1.3: Sinh block đầu tiên và đặt tại vị trí spawn
+        // (model.reset() thực hiện cả hai: reset board + _spawnPiece)
         this.model.reset();
 
-        // RESET FLAG
-        this.gameOverHandled = false;
+        // Kiểm tra sau reset: board phải hợp lệ và current piece phải tồn tại
+        if (!this.model.current) {
+            console.error("[UC-03] Spawn thất bại: không có current piece sau reset.");
+            return;
+        }
 
+        // UC-03 Step 1.4: Chuyển trạng thái game sang running
         this.state = 'playing';
 
+        // Reset các flag liên quan
+        this.gameOverHandled = false;
         this.newRecord = false;
 
+        // UC-03 Step 1.5: Hiển thị bảng game và block đầu tiên
         this.view.hideAll();
-
         this._syncView();
 
+        // UC-03 Step 1.6: Bắt đầu vòng lặp game, block tự động rơi theo tốc độ mặc định
         this._dropAcc = 0;
-
         this._lastTick = performance.now();
 
         if (this._rafId) {
@@ -163,9 +178,6 @@ export default class GameController {
 
         if (this.model.gameOver) {
 
-            // SET FLAG NGAY TẠI ĐÂY (sync) trước khi gọi async handleGameOver
-            // Tránh race condition: loop + keypress đều gọi _checkGameOver
-            // trước khi await fetch() trong handleGameOver kịp chạy
             this.gameOverHandled = true;
 
             this.handleGameOver();
@@ -292,7 +304,6 @@ export default class GameController {
 
     _loop(timestamp) {
 
-        // DỪNG LOOP NẾU KHÔNG PLAYING
         if (this.state !== 'playing') return;
 
         const dt = timestamp - this._lastTick;
