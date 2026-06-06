@@ -128,16 +128,41 @@ export default class GameView {
   showPause() {
     this._showOnly('pause-screen');
   }
+    //Vân Trường
+    showGameOver({
+                     score,
+                     hi,
+                     level,
+                     lines,
+                     playTime,
+                     newRecord
+                 }) {
 
-  showGameOver(score, hi, newRecord) {
-    if (this.finalEl) {
-      this.finalEl.innerHTML = `SCORE: ${score}` + (newRecord ? '<br><span class="new-record">NEW RECORD!</span>' : '');
+        const minutes = Math.floor(playTime / 60);
+        const seconds = playTime % 60;
+
+        if (this.finalEl) {
+
+            this.finalEl.innerHTML = `
+            <div>Score: ${score.toLocaleString()}</div>
+            <div>Level: ${level}</div>
+            <div>Lines: ${lines}</div>
+            <div>Time: ${minutes}:${seconds.toString().padStart(2,'0')}</div>
+
+            ${
+                newRecord
+                    ? '<div class="new-record">🏆 NEW RECORD!</div>'
+                    : ''
+            }
+        `;
+        }
+
+        if (this.hiEl) {
+            this.hiEl.textContent = hi.toLocaleString();
+        }
+
+        this._showOnly('gameover-screen');
     }
-    if (this.hiEl) {
-      this.hiEl.textContent = hi.toLocaleString();
-    }
-    this._showOnly('gameover-screen');
-  }
 
   hideAll() {
     ['start-screen', 'pause-screen', 'gameover-screen']

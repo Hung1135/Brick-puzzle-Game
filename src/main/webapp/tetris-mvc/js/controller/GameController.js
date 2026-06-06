@@ -17,6 +17,7 @@ export default class GameController {
         this._lastTick = 0;
         this._rafId = null;
         this._dropAcc = 0;
+        this.startTime = null;
 
         // FIX GAME OVER MULTIPLE CALL
         this.gameOverHandled = false;
@@ -105,6 +106,12 @@ export default class GameController {
         }
 
         this._loop(this._lastTick);
+        this.startTime = Date.now();
+    }
+    getPlayTimeSeconds() {
+        return Math.floor(
+            (Date.now() - this.startTime) / 1000
+        );
     }
 
     restartGame() {
@@ -136,12 +143,15 @@ export default class GameController {
         this.view.render(this.model);
 
         this._updateHighScore();
-
-        this.view.showGameOver(
-            this.model.score,
-            this.hi,
-            this.newRecord
-        );
+        //Vân Trường
+        this.view.showGameOver({
+            score: this.model.score,
+            hi: this.hi,
+            level: this.model.level,
+            lines: this.model.lines,
+            playTime: this.getPlayTimeSeconds(),
+            newRecord: this.newRecord
+        });
     }
 
     pause() {
@@ -207,7 +217,7 @@ export default class GameController {
 
                         linesCleared: this.model.lines,
 
-                        playTimeSeconds: 120
+                        playTimeSeconds: this.getPlayTimeSeconds()
                     })
                 }
             );
@@ -243,6 +253,15 @@ export default class GameController {
     // ─────────────────────────────
 
     _onKey(e) {
+        //Vân Trường
+        if (this.state === 'over') {
+
+            if (e.code === 'Enter') {
+                this.restartGame();
+            }
+
+            return;
+        }
 
         if (this.state !== 'playing') {
 
