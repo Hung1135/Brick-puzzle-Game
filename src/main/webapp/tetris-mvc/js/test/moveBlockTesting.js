@@ -299,6 +299,33 @@ test("moveRight: bị block bên phải thì không di chuyển", () => {
 });
 
 // ─────────────────────────────
+// WASD SUPPORT
+// ─────────────────────────────
+
+test("KeyA (moveLeft): dịch trái 1 ô", () => {
+    const m = new GameModel();
+    m.current.x = 5;
+    // simulate: same logic as moveLeft
+    m.moveLeft();
+    expect(m.current.x).toBe(4);
+});
+
+test("KeyD (moveRight): dịch phải 1 ô", () => {
+    const m = new GameModel();
+    m.current.x = 4;
+    m.moveRight();
+    expect(m.current.x).toBe(5);
+});
+
+test("KeyS (softDrop): rơi 1 ô + cộng điểm", () => {
+    const m = new GameModel();
+    const oldY = m.current.y;
+    m.softDrop();
+    expect(m.current.y).toBe(oldY + 1);
+    expect(m.score).toBe(1);
+});
+
+// ─────────────────────────────
 // RESULT
 // ─────────────────────────────
 
@@ -309,3 +336,4 @@ console.log(
 if (failed > 0) {
     process.exit(1);
 }
+

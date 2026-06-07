@@ -43,6 +43,7 @@
     <div class="overlay" id="start-screen">
       <h2>TETRIS</h2>
       <p>MVC ARCHITECTURE</p>
+        <p style="color:#ff2d6e; font-size:0.7rem;">
       <button class="btn" id="start-btn">START GAME</button>
     </div>
 
