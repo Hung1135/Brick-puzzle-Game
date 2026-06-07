@@ -2,6 +2,9 @@ export const COLS = 10;
 export const ROWS = 20;
 export const CELL = 28;
 export const NEXT_CELL = 22;
+export const DAS = 133;  // ms chờ trước khi auto-repeat bắt đầu
+export const ARR = 50;   // ms giữa mỗi bước lặp
+
 
 export const TETROMINOES = [
   { shape: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], color: '#00f5ff' },

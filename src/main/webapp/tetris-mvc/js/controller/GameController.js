@@ -1,6 +1,6 @@
 import GameModel from "../model/GameModel.js";
 import GameView from "../view/GameView.js";
-
+import { DAS, ARR } from "../constants.js";
 export default class GameController {
 
     constructor() {
@@ -21,6 +21,9 @@ export default class GameController {
 
         // FIX GAME OVER MULTIPLE CALL
         this.gameOverHandled = false;
+        this._heldDir = null;   // 'left' | 'right' | null
+        this._dasTimer = 0;
+        this._arrTimer = 0;
 
         this._bindInputs();
 
@@ -38,6 +41,17 @@ export default class GameController {
     _bindInputs() {
 
         document.addEventListener('keydown', e => this._onKey(e));
+
+        document.addEventListener('keyup', e => {
+            if (
+                e.code === 'ArrowLeft' || e.code === 'KeyA' ||
+                e.code === 'ArrowRight' || e.code === 'KeyD'
+            ) {
+                this._heldDir = null;
+                this._dasTimer = 0;
+                this._arrTimer = 0;
+            }
+        });
 
         const startBtn = document.getElementById('start-btn');
         const resumeBtn = document.getElementById('resume-btn');
@@ -278,12 +292,22 @@ export default class GameController {
 
             case 'ArrowLeft':
             case 'KeyA':
-                m.moveLeft();
+                if (this._heldDir !== 'left') {
+                    this._heldDir = 'left';
+                    this._dasTimer = 0;
+                    this._arrTimer = 0;
+                    m.moveLeft();
+                }
                 break;
 
             case 'ArrowRight':
             case 'KeyD':
-                m.moveRight();
+                if (this._heldDir !== 'right') {
+                    this._heldDir = 'right';
+                    this._dasTimer = 0;
+                    this._arrTimer = 0;
+                    m.moveRight();
+                }
                 break;
 
             case 'ArrowDown':
@@ -332,6 +356,29 @@ export default class GameController {
         const dt = timestamp - this._lastTick;
 
         this._lastTick = timestamp;
+
+        // ── DAS / ARR ──────────────────────────────────────────
+        if (this._heldDir) {
+
+            this._dasTimer += dt;
+
+            if (this._dasTimer >= DAS) {
+
+                this._arrTimer += dt;
+
+                if (this._arrTimer >= ARR) {
+
+                    this._arrTimer = 0;
+
+                    if (this._heldDir === 'left')  this.model.moveLeft();
+                    if (this._heldDir === 'right') this.model.moveRight();
+
+                    this._checkGameOver();
+                    this._syncView();
+                }
+            }
+        }
+        // ───────────────────────────────────────────────────────
 
         this._dropAcc += dt;
 
