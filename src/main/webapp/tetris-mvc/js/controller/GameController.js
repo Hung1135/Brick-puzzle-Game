@@ -28,7 +28,7 @@ export default class GameController {
         this.gameOverHandled = false;
 
         // DAS / ARR
-        this._heldDir = null;   // 'left' | 'right' | null
+        this._heldDir = null;
         this._dasTimer = 0;
         this._arrTimer = 0;
 
@@ -45,6 +45,10 @@ export default class GameController {
         this.contextPath = window.location.pathname
             .split("/tetris-mvc")[0];
     }
+
+    // ─────────────────────────────
+    // INPUT
+    // ─────────────────────────────
 
     _bindInputs() {
 
@@ -91,13 +95,21 @@ export default class GameController {
 
         if (this.state === 'playing') return;
 
+        // UC-03 Step 1.1: Người chơi nhấn nút Start → hệ thống nhận yêu cầu bắt đầu trò chơi
+        // (trigger đến từ button onclick hoặc restartGame() - đã xử lý ở _bindInputs)
+
+        // UC-03 Step 1.2: Khởi tạo bảng game với lưới ô trống
+        // UC-03 Step 1.3: Sinh block đầu tiên và đặt tại vị trí spawn
+        // (model.reset() thực hiện cả hai: reset board + _spawnPiece)
         this.model.reset();
 
+        // Kiểm tra sau reset: board phải hợp lệ và current piece phải tồn tại
         if (!this.model.current) {
             console.error("[UC-03] Spawn thất bại: không có current piece sau reset.");
             return;
         }
 
+        // UC-03 Step 1.4: Chuyển trạng thái game sang running
         this.state = 'playing';
 
         this.gameOverHandled = false;
@@ -112,6 +124,7 @@ export default class GameController {
         this.view.hideAll();
         this._syncView();
 
+        // UC-03 Step 1.6: Bắt đầu vòng lặp game, block tự động rơi theo tốc độ mặc định
         this._dropAcc = 0;
         this._lastTick = performance.now();
 
@@ -201,7 +214,7 @@ export default class GameController {
     }
 
     // ─────────────────────────────
-    // GAME OVER
+    // GAME OVER (ALTERNATIVE FLOW - 7.1.2 / 7.5.2)
     // ─────────────────────────────
 
     _checkGameOver() {
@@ -211,7 +224,8 @@ export default class GameController {
         if (this.model.gameOver) {
 
             this.gameOverHandled = true;
-
+            // 🔴 [ALTERNATIVE FLOW - 7.1.2 / 7.5.2]: Chuyển quyền xử lý sang Use Case Game Over
+            console.log("[AF-7.1.2 / 7.5.2] Ngăn mọi thao tác điều khiển, chuyển sang xử lý Game Over.");
             this.handleGameOver();
         }
     }
@@ -226,11 +240,7 @@ export default class GameController {
                 `${window.CONTEXT_PATH}/save-score`,
                 {
                     method: "POST",
-
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
 
                         score: this.model.score,
@@ -270,10 +280,6 @@ export default class GameController {
         }
     }
 
-    // ─────────────────────────────
-    // LOCK DELAY HELPER
-    // ─────────────────────────────
-
     _resetLockDelay() {
         if (this._isLocking && this._lockResets < 15) {
             this._lockTimer = 0;
@@ -292,20 +298,12 @@ export default class GameController {
         // Cho phép người chơi nhấn Enter để chơi lại
         // thay vì phải bấm nút Restart bằng chuột
         if (this.state === 'over') {
-
-            if (e.code === 'Enter') {
-                this.restartGame();
-            }
-
+            if (e.code === 'Enter') this.restartGame();
             return;
         }
 
         if (this.state !== 'playing') {
-
-            if (e.code === 'KeyP' && this.state === 'paused') {
-                this.resume();
-            }
-
+            if (e.code === 'KeyP' && this.state === 'paused') this.resume();
             return;
         }
 
@@ -384,15 +382,11 @@ export default class GameController {
 
         this._lastTick = timestamp;
 
-        // ── DAS / ARR ──────────────────────────────────────────
+        // DAS / ARR Logic
         if (this._heldDir) {
-
             this._dasTimer += dt;
-
             if (this._dasTimer >= DAS) {
-
                 this._arrTimer += dt;
-
                 if (this._arrTimer >= ARR) {
 
                     this._arrTimer = 0;
@@ -405,19 +399,18 @@ export default class GameController {
                 }
             }
         }
-        // ───────────────────────────────────────────────────────
 
         this._dropAcc += dt;
-
         const speed = this.model.getDropSpeed();
 
         let leveledUp = false;
 
-        // ── DROP + LOCK DELAY ───────────────────────────────────
+        // DROP + LOCK DELAY
         if (this._dropAcc >= speed) {
 
             this._dropAcc -= speed;
 
+            // 🔴 [MAIN FLOW - 7.0]: Kiểm tra khối gạch hiện hành va chạm với đáy hoặc khối cố định bên dưới (Điểm kích hoạt)
             if (!this.model._collides(this.model.current, 0, 1)) {
 
                 // Block còn rơi được → rơi bình thường, tắt lock delay
@@ -427,22 +420,19 @@ export default class GameController {
                 this._lockResets = 0;
 
             } else {
-
-                // Block chạm đáy → bắt đầu đếm lock delay
+                console.log("[MAIN FLOW - 7.0] Điểm kích hoạt: Khối gạch chạm đáy/va chạm vật cản bên dưới.");
                 this._isLocking = true;
             }
 
             this._checkGameOver();
         }
 
-        // Đếm lock delay timer
+        // Đếm lock delay timer và xử lý cố định mảnh gạch
         if (this._isLocking) {
 
             this._lockTimer += dt;
 
             if (this._lockTimer >= LOCK_DELAY) {
-
-                // Hết thời gian → lock thật
                 const prevLevel = this.model.level;
 
                 // ==================================================
@@ -469,25 +459,29 @@ export default class GameController {
                 }
             }
 
-            this._checkGameOver();
+                // Kiểm tra trạng thái trò chơi kết thúc sau khi khóa hoặc sinh mảnh mới
+                this._checkGameOver();
+
+
         }
 
         if (leveledUp) {
             this.view.flashLevelUp();
         }
 
+        // 🔴 [MAIN FLOW - 7.6]: Hệ thống đồng bộ mọi thay đổi lên giao diện (bao gồm điểm, combo, cấp độ,...)
         this._syncView();
 
+        // 🔴 [MAIN FLOW - 7.7]: Use Case kết thúc một chu kỳ lặp an toàn nếu trạng thái vẫn đang chơi
         if (this.state === 'playing') {
-
-            this._rafId = requestAnimationFrame(
-                ts => this._loop(ts)
-            );
+            this._rafId = requestAnimationFrame(ts => this._loop(ts));
+        } else {
+            console.log("[MAIN FLOW - 7.7] Use Case kết thúc vòng lặp (Trạng thái game đổi hoặc Kết thúc game).");
         }
     }
 
     // ─────────────────────────────
-    // VIEW SYNC
+    // VIEW SYNC (MAIN FLOW - 7.6)
     // ─────────────────────────────
 
     _syncView() {
@@ -496,6 +490,7 @@ export default class GameController {
 
         this.view.renderNext(this.model.next);
 
+        // UI HUD cập nhật sẽ nhận cả thông tin Combo mới từ model
         this.view.updateHUD(this.model, this.hi);
     }
 }
