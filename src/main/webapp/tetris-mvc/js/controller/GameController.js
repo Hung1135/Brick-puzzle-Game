@@ -18,9 +18,13 @@ export default class GameController {
         this._lastTick = 0;
         this._rafId = null;
         this._dropAcc = 0;
+
+        // ===== GAME OVER IMPROVEMENT =====
+        // Lưu thời điểm bắt đầu game để tính tổng thời gian chơi
         this.startTime = null;
 
         // FIX GAME OVER MULTIPLE CALL
+        // Đảm bảo handleGameOver() chỉ được gọi 1 lần
         this.gameOverHandled = false;
 
         // DAS / ARR
@@ -41,10 +45,6 @@ export default class GameController {
         this.contextPath = window.location.pathname
             .split("/tetris-mvc")[0];
     }
-
-    // ─────────────────────────────
-    // INPUT
-    // ─────────────────────────────
 
     _bindInputs() {
 
@@ -83,35 +83,23 @@ export default class GameController {
         }
     }
 
-    // ─────────────────────────────
+    // ==================================================
     // GAME FLOW
-    // ─────────────────────────────
+    // ==================================================
 
-    // Main Flow: Start Game Loop & Transition to Playing
-    // Implements UC-03 - START GAME
     startGame() {
 
-        // Guard: không cho phép start khi đang chơi
         if (this.state === 'playing') return;
 
-        // UC-03 Step 1.1: Người chơi nhấn nút Start → hệ thống nhận yêu cầu bắt đầu trò chơi
-        // (trigger đến từ button onclick hoặc restartGame() - đã xử lý ở _bindInputs)
-
-        // UC-03 Step 1.2: Khởi tạo bảng game với lưới ô trống
-        // UC-03 Step 1.3: Sinh block đầu tiên và đặt tại vị trí spawn
-        // (model.reset() thực hiện cả hai: reset board + _spawnPiece)
         this.model.reset();
 
-        // Kiểm tra sau reset: board phải hợp lệ và current piece phải tồn tại
         if (!this.model.current) {
             console.error("[UC-03] Spawn thất bại: không có current piece sau reset.");
             return;
         }
 
-        // UC-03 Step 1.4: Chuyển trạng thái game sang running
         this.state = 'playing';
 
-        // Reset các flag liên quan
         this.gameOverHandled = false;
         this.newRecord = false;
 
@@ -124,7 +112,6 @@ export default class GameController {
         this.view.hideAll();
         this._syncView();
 
-        // UC-03 Step 1.6: Bắt đầu vòng lặp game, block tự động rơi theo tốc độ mặc định
         this._dropAcc = 0;
         this._lastTick = performance.now();
 
@@ -133,9 +120,16 @@ export default class GameController {
         }
 
         this._loop(this._lastTick);
+
+        // ===== GAME OVER IMPROVEMENT =====
+        // Ghi nhận thời điểm bắt đầu game
+        // Dùng để tính tổng thời gian chơi khi game kết thúc
         this.startTime = Date.now();
     }
 
+
+    // ===== GAME OVER IMPROVEMENT =====
+    // Trả về tổng thời gian chơi (đơn vị giây)
     getPlayTimeSeconds() {
         return Math.floor(
             (Date.now() - this.startTime) / 1000
@@ -288,11 +282,15 @@ export default class GameController {
     }
 
     // ─────────────────────────────
+    // ==================================================
     // INPUT HANDLER
-    // ─────────────────────────────
+    // ==================================================
 
     _onKey(e) {
-        //Vân Trường
+
+        // ===== GAME OVER IMPROVEMENT =====
+        // Cho phép người chơi nhấn Enter để chơi lại
+        // thay vì phải bấm nút Restart bằng chuột
         if (this.state === 'over') {
 
             if (e.code === 'Enter') {
@@ -447,6 +445,19 @@ export default class GameController {
                 // Hết thời gian → lock thật
                 const prevLevel = this.model.level;
 
+                // ==================================================
+                // UC-07 CLEAR LINE
+                // ==================================================
+                // Khi khối chạm đáy hoặc chạm khối khác:
+                // 1. Khóa khối vào board
+                // 2. Kiểm tra các hàng đầy
+                // 3. Xóa hàng đầy
+                // 4. Cộng điểm
+                // 5. Cập nhật tổng số dòng đã clear
+                // 6. Tăng level nếu đủ điều kiện
+                //
+                // Các xử lý này được thực hiện bên trong
+                // GameModel._lockPiece()
                 this.model._lockPiece();
 
                 this._isLocking = false;
@@ -456,11 +467,10 @@ export default class GameController {
                 if (this.model.level !== prevLevel) {
                     leveledUp = true;
                 }
-
-                this._checkGameOver();
             }
+
+            this._checkGameOver();
         }
-        // ───────────────────────────────────────────────────────
 
         if (leveledUp) {
             this.view.flashLevelUp();
