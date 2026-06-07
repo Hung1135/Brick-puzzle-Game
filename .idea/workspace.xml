@@ -9,15 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b3eb82bf-75bf-43a1-b0eb-7ea4e25dec1e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/controller/GameController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/controller/GameController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/controller/stopGameLoop.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/controller/stopGameLoop.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/model/GameModel.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/model/GameModel.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/test/clearLineFunctionTesting.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/test/clearLineFunctionTesting.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/test/gameOverTestingImproved.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/test/gameOverTestingImproved.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/view/GameView.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/view/GameView.js" afterDir="false" />
-    </list>
+    <list default="true" id="b3eb82bf-75bf-43a1-b0eb-7ea4e25dec1e" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
