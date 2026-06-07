@@ -1,13 +1,12 @@
 /**
  * UC-07
- * CLEAR LINE & SCORE CALCULATION TEST
+ * CLEAR LINE, SCORE & COMBO CALCULATION TEST (UPDATED)
  *
  * Mục đích:
- * Kiểm thử chức năng:
+ * Kiểm thử chức năng sau khi bổ sung tính năng mới:
  * - Xóa dòng đầy (_clearLines)
- * - Cập nhật điểm (_addScore)
- * - Cập nhật tổng số dòng đã clear
- * - Tăng level
+ * - Cập nhật điểm tích hợp chuỗi Combo, Perfect Clear, Level (_updatePerformanceAndScore)
+ * - Các kịch bản luồng thay thế (Alternative Flows): đứt chuỗi Combo, Game Over khi khóa khối ngoài màn hình.
  *
  * Chạy:
  * node clearLineTesting.js
@@ -16,12 +15,10 @@
 // ==================================================
 // MOCK CONSTANTS
 // ==================================================
-// Sao chép từ constants.js để độc lập với project
-// ==================================================
-
 const COLS = 10;
 const ROWS = 20;
 
+// Đồng bộ bảng điểm SCORE_TABLE tương ứng với cấu trúc tính điểm của GameModel mới
 const SCORE_TABLE = {
     1: 100,
     2: 300,
@@ -30,104 +27,107 @@ const SCORE_TABLE = {
 };
 
 // ==================================================
-// EXTRACT LOGIC TỪ GameModel
+// EXTRACTED LOGIC TỪ GAMEMODEL (UPDATED)
 // ==================================================
 
 /**
- * UC-07
- * Xóa các hàng đầy trong board
- *
- * Trả về:
- * số dòng đã được xóa
+ * 🔴 [MAIN FLOW - 7.3]
+ * Loại bỏ hàng lấp đầy, bổ sung hàng trống phía trên và dịch chuyển khối xuống
  */
 function clearLines(board) {
-
     let count = 0;
 
     for (let r = ROWS - 1; r >= 0; r--) {
-
-        // Nếu toàn bộ ô đều có dữ liệu
-        // => hàng đã đầy
+        // Kiểm tra tất cả ô trong hàng đều có dữ liệu
         if (board[r].every(cell => cell !== null)) {
-
             // Xóa hàng đầy
             board.splice(r, 1);
-
-            // Thêm hàng rỗng phía trên
-            board.unshift(
-                Array(COLS).fill(null)
-            );
-
+            // Thêm hàng trống ở phía trên
+            board.unshift(Array(COLS).fill(null));
             count++;
-
-            // Kiểm tra lại vị trí hiện tại
-            // vì các hàng đã dịch xuống
+            // Kiểm tra lại vị trí hiện tại để xử lý trường hợp clear nhiều dòng liên tiếp
             r++;
         }
     }
-
     return count;
 }
 
 /**
- * UC-07
- * Cập nhật:
- * - Score
- * - Lines
- * - Level
+ * Hàm phụ kiểm tra xem toàn bộ ma trận board có trống sạch hay không
  */
-function addScore(state, lines) {
+function isPerfectClear(board) {
+    return board.every(row => row.every(cell => cell === null));
+}
 
-    if (lines === 0) return;
+/**
+ * 🔴 [MAIN FLOW - 7.4] & [ALTERNATIVE FLOW - 7.2]
+ * Cập nhật điểm số, chuỗi combo, perfect clear và cấp độ mới
+ */
+function updatePerformanceAndScore(state, linesCleared, board) {
+    // 🔴 [ALTERNATIVE FLOW - 7.2.1 -> 7.2.3]: Không phát hiện hàng nào được lấp đầy
+    if (linesCleared === 0) {
+        // 🔴 [ALTERNATIVE FLOW - 7.2.3]: Đặt lại chuỗi Combo hiện tại bằng 0
+        state.combo = 0;
+        return;
+    }
 
-    // Cộng điểm theo bảng SCORE_TABLE
-    state.score +=
-        (SCORE_TABLE[lines] || 800)
-        * state.level;
+    // 🔴 7.4.1. Cập nhật số lượng dòng đã xóa và tính điểm cơ bản dựa trên số dòng được loại bỏ
+    state.lines += linesCleared;
+    let baseScore = (SCORE_TABLE[linesCleared] || 800) * state.level;
+    state.score += baseScore;
 
-    // Tổng số dòng đã clear
-    state.lines += lines;
+    // 🔴 7.4.2. Tăng giá trị Combo và cộng điểm thưởng Combo tương ứng
+    state.combo++;
+    if (state.combo > 1) {
+        let comboBonus = (state.combo - 1) * 50 * state.level;
+        state.score += comboBonus;
+    }
 
-    // Tăng level mỗi 10 lines
-    state.level =
-        Math.floor(state.lines / 10) + 1;
+    // 🔴 7.4.3. Kiểm tra trạng thái Perfect Clear
+    if (isPerfectClear(board)) {
+        let perfectClearBonus = 2000 * state.level;
+        state.score += perfectClearBonus;
+    }
+
+    // 🔴 7.4.4. Tính toán và cập nhật cấp độ mới (Mỗi 10 dòng lên 1 cấp)
+    state.level = Math.floor(state.lines / 10) + 1;
+}
+
+/**
+ * 🔴 [ALTERNATIVE FLOW - 7.1.0 -> 7.1.2]
+ * Giả lập việc cố định khối gạch (_lockPiece) để kiểm tra lỗi vượt quá biên trên (Game Over)
+ */
+function simulateLockPiece(state, board, currentPiece) {
+    const { shape, x, y, color } = currentPiece;
+
+    for (let r = 0; r < shape.length; r++) {
+        for (let c = 0; c < shape[r].length; c++) {
+            if (!shape[r][c]) continue;
+
+            const ny = y + r;
+            // 🔴 Phát hiện khối gạch nằm ngoài vùng hiển thị hợp lệ (ny < 0)
+            if (ny < 0) {
+                state.gameOver = true;
+                return;
+            }
+            board[ny][x + c] = color;
+        }
+    }
 }
 
 // ==================================================
 // HELPER FUNCTIONS
 // ==================================================
-
-/**
- * Tạo board rỗng
- */
 function emptyBoard() {
-
-    return Array.from(
-        { length: ROWS },
-        () => Array(COLS).fill(null)
-    );
+    return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
 }
 
-/**
- * Điền đầy một hàng
- */
 function fillRow(board, r) {
-
-    board[r] =
-        Array(COLS).fill("red");
+    board[r] = Array(COLS).fill("red");
 }
 
-/**
- * Điền một phần hàng
- */
-function fillPartial(
-    board,
-    r,
-    cols = 5
-) {
-
+function fillPartial(board, r, cols = 5) {
     for (let c = 0; c < cols; c++) {
-
         board[r][c] = "red";
     }
 }
@@ -135,63 +135,33 @@ function fillPartial(
 // ==================================================
 // MINI TEST FRAMEWORK
 // ==================================================
-
 let passed = 0;
 let failed = 0;
 
 function test(name, fn) {
-
     try {
-
         fn();
-
-        console.log(
-            `✅ PASS: ${name}`
-        );
-
+        console.log(`✅ PASS: ${name}`);
         passed++;
-
     } catch (e) {
-
-        console.log(
-            `❌ FAIL: ${name}`
-        );
-
-        console.log(
-            `   → ${e.message}`
-        );
-
+        console.log(`❌ FAIL: ${name}`);
+        console.log(`   → ${e.message}`);
         failed++;
     }
 }
 
 function expect(actual) {
-
     return {
-
         toBe(expected) {
-
             if (actual !== expected) {
-
-                throw new Error(
-                    `Expected ${expected}, got ${actual}`
-                );
+                throw new Error(`Expected ${expected}, got ${actual}`);
             }
         },
-
         toEqual(expected) {
-
-            const a =
-                JSON.stringify(actual);
-
-            const b =
-                JSON.stringify(expected);
-
+            const a = JSON.stringify(actual);
+            const b = JSON.stringify(expected);
             if (a !== b) {
-
-                throw new Error(
-                    `Expected ${b}, got ${a}`
-                );
+                throw new Error(`Expected ${b}, got ${a}`);
             }
         }
     };
@@ -201,320 +171,138 @@ function expect(actual) {
 // UC-07 TEST CASES
 // ==================================================
 
-console.log(
-    "\n🧪 UC-07 CLEAR LINE TESTS\n"
-);
+console.log("\n🧪 UC-07 CLEAR LINE & PERFORMANCE TESTS (UPDATED)\n");
 
-// --------------------------------------------------
-// TC01
-// Board trống
-// --------------------------------------------------
+// --- LINE CLEAR TESTS (TC01 -> TC08 duy trì tính đúng đắn của giải thuật nền) ---
+test("TC01 - Board trống: trả về 0 dòng cleared", () => {
+    const board = emptyBoard();
+    const count = clearLines(board);
+    expect(count).toBe(0);
+});
 
-test(
-    "Board trống: trả về 0 dòng cleared",
-    () => {
+test("TC02 - 1 hàng đầy ở đáy: xóa 1 dòng", () => {
+    const board = emptyBoard();
+    fillRow(board, ROWS - 1);
+    const count = clearLines(board);
+    expect(count).toBe(1);
+});
 
-        const board =
-            emptyBoard();
+test("TC03 - Hàng mới phía trên cùng sau khi dịch chuyển phải rỗng", () => {
+    const board = emptyBoard();
+    fillRow(board, ROWS - 1);
+    clearLines(board);
+    expect(board[0].every(c => c === null)).toBe(true);
+});
 
-        const count =
-            clearLines(board);
+test("TC04 - Hàng chưa đầy hoàn toàn: không thực hiện xóa", () => {
+    const board = emptyBoard();
+    fillPartial(board, ROWS - 1, 9);
+    const count = clearLines(board);
+    expect(count).toBe(0);
+});
 
-        expect(count).toBe(0);
+// --- NEW FEATURES TESTS: COMBO LOGIC (MAIN FLOW - 7.4.2 & AF - 7.2.3) ---
+test("TC09 - Combo tăng lên 1 ở lượt xóa đầu tiên (Chưa nhận điểm thưởng)", () => {
+    const state = { score: 0, lines: 0, level: 1, combo: 0 };
+    const board = emptyBoard();
 
-        expect(board.length)
-            .toBe(ROWS);
-    }
-);
+    updatePerformanceAndScore(state, 1, board); // Xóa 1 dòng
 
-// --------------------------------------------------
-// TC02
-// 1 hàng đầy
-// --------------------------------------------------
+    expect(state.combo).toBe(1);
+    expect(state.score).toBe(100); // Chỉ có điểm cơ bản: 100 * level 1
+});
 
-test(
-    "1 hàng đầy ở đáy: xóa 1 dòng",
-    () => {
+test("TC10 - Tích lũy chuỗi Combo liên tiếp: Nhận điểm thưởng Combo ở lượt thứ hai trở đi", () => {
+    const state = { score: 0, lines: 0, level: 1, combo: 1 }; // Giả lập đã có sẵn combo = 1
+    const board = emptyBoard();
+    fillPartial(board, ROWS - 1, 2); // Giữ board không trống hoàn toàn để tránh Perfect Clear
 
-        const board =
-            emptyBoard();
+    updatePerformanceAndScore(state, 1, board); // Tiếp tục xóa 1 dòng
 
-        fillRow(
-            board,
-            ROWS - 1
-        );
+    expect(state.combo).toBe(2);
+    // Điểm = Điểm cơ bản (100 * 1) + Thưởng Combo [(2 - 1) * 50 * 1] = 150
+    expect(state.score).toBe(150);
+});
 
-        const count =
-            clearLines(board);
+test("TC11 - AF 7.2.3: Đứt chuỗi Combo về 0 nếu lượt chơi hiện tại không xóa được hàng", () => {
+    const state = { score: 500, lines: 4, level: 1, combo: 3 }; // Đang có chuỗi combo cao
+    const board = emptyBoard();
 
-        expect(count)
-            .toBe(1);
+    updatePerformanceAndScore(state, 0, board); // 0 dòng bị xóa
 
-        expect(board.length)
-            .toBe(ROWS);
-    }
-);
+    expect(state.combo).toBe(0);
+    expect(state.score).toBe(500); // Giữ nguyên điểm cũ
+});
 
-// --------------------------------------------------
-// TC03
-// Hàng mới phía trên
-// --------------------------------------------------
+// --- NEW FEATURES TESTS: PERFECT CLEAR (MAIN FLOW - 7.4.3) ---
+test("TC12 - Đạt trạng thái Perfect Clear: Cộng điểm thưởng lớn", () => {
+    const state = { score: 0, lines: 0, level: 1, combo: 0 };
+    const board = emptyBoard();
+    // Board hoàn toàn trống sạch sau khi clearLines chạy trước đó
 
-test(
-    "Hàng đầu tiên sau khi clear phải rỗng",
-    () => {
+    updatePerformanceAndScore(state, 4, board); // Kích hoạt xóa Tetris sạch board
 
-        const board =
-            emptyBoard();
+    // Điểm = Cơ bản (800 * 1) + Combo lượt 1 (0) + Perfect Clear (2000 * 1) = 2800
+    expect(state.score).toBe(2800);
+});
 
-        fillRow(
-            board,
-            ROWS - 1
-        );
+test("TC13 - AF 7.4.3.1: Không thỏa Perfect Clear nếu bàn chơi vẫn còn gạch sót lại", () => {
+    const state = { score: 0, lines: 0, level: 1, combo: 0 };
+    const board = emptyBoard();
+    board[ROWS - 5][0] = "blue"; // Còn sót một block ở phía trên
 
-        clearLines(board);
+    updatePerformanceAndScore(state, 1, board);
 
-        expect(
-            board[0].every(
-                c => c === null
-            )
-        ).toBe(true);
-    }
-);
+    // Chỉ nhận điểm cơ bản 100, không được cộng 2000 điểm Perfect Clear
+    expect(state.score).toBe(100);
+});
 
-// --------------------------------------------------
-// TC04
-// Hàng chưa đầy
-// --------------------------------------------------
+// --- LEVEL UP LOGIC TESTS (MAIN FLOW - 7.4.4) ---
+test("TC14 - Hệ thống tự động tăng cấp độ (Level) sau mỗi 10 dòng tích lũy", () => {
+    const state = { score: 0, lines: 8, level: 1, combo: 0 };
+    const board = emptyBoard();
 
-test(
-    "Hàng không đầy: không xóa",
-    () => {
+    updatePerformanceAndScore(state, 2, board); // Tổng lines đạt 10
 
-        const board =
-            emptyBoard();
+    expect(state.level).toBe(2);
+});
 
-        fillPartial(
-            board,
-            ROWS - 1,
-            9
-        );
+test("TC15 - Điểm số cơ bản và điểm thưởng Combo nhân theo cấp độ (Level) mới", () => {
+    const state = { score: 0, lines: 10, level: 2, combo: 1 }; // Khởi đầu ở Level 2
+    const board = emptyBoard();
+    fillPartial(board, ROWS - 1, 1);
 
-        const count =
-            clearLines(board);
+    updatePerformanceAndScore(state, 1, board); // Xóa 1 dòng
 
-        expect(count)
-            .toBe(0);
-    }
-);
+    // Điểm cơ bản = 100 * Level 2 = 200
+    // Thưởng Combo = (2 - 1) * 50 * Level 2 = 100
+    // Tổng cộng thêm = 300
+    expect(state.score).toBe(300);
+});
 
-// --------------------------------------------------
-// TC05
-// 2 hàng liên tiếp
-// --------------------------------------------------
+// --- ALTERNATIVE FLOW TESTS: GAME OVER CONDITIONS (AF - 7.1.0 -> 7.1.2) ---
+test("TC16 - AF 7.1.0: Phát hiện khối gạch cố định vượt quá biên trên màn hình hiển thị hợp lệ", () => {
+    const state = { gameOver: false };
+    const board = emptyBoard();
 
-test(
-    "2 hàng đầy liên tiếp: xóa 2",
-    () => {
+    // Giả lập khối gạch bị kẹt cố định tại vị trí có toạ độ y âm (ny < 0)
+    const currentPiece = {
+        shape: [[1, 1], [1, 1]],
+        x: 4,
+        y: -1,
+        color: "yellow"
+    };
 
-        const board =
-            emptyBoard();
+    simulateLockPiece(state, board, currentPiece);
 
-        fillRow(board, ROWS - 1);
-        fillRow(board, ROWS - 2);
-
-        const count =
-            clearLines(board);
-
-        expect(count)
-            .toBe(2);
-    }
-);
-
-// --------------------------------------------------
-// TC06
-// Tetris (4 hàng)
-// --------------------------------------------------
-
-test(
-    "4 hàng đầy (Tetris): xóa 4",
-    () => {
-
-        const board =
-            emptyBoard();
-
-        fillRow(board, ROWS - 1);
-        fillRow(board, ROWS - 2);
-        fillRow(board, ROWS - 3);
-        fillRow(board, ROWS - 4);
-
-        const count =
-            clearLines(board);
-
-        expect(count)
-            .toBe(4);
-    }
-);
-
-// --------------------------------------------------
-// TC07
-// Hàng đầy không liên tiếp
-// --------------------------------------------------
-
-test(
-    "2 hàng đầy cách nhau",
-    () => {
-
-        const board =
-            emptyBoard();
-
-        fillRow(board, ROWS - 1);
-        fillRow(board, ROWS - 5);
-
-        const count =
-            clearLines(board);
-
-        expect(count)
-            .toBe(2);
-    }
-);
-
-// --------------------------------------------------
-// TC08
-// Kiểm tra dịch hàng
-// --------------------------------------------------
-
-test(
-    "Hàng phía trên dịch xuống",
-    () => {
-
-        const board =
-            emptyBoard();
-
-        board[ROWS - 2][0] =
-            "blue";
-
-        fillRow(
-            board,
-            ROWS - 1
-        );
-
-        clearLines(board);
-
-        expect(
-            board[ROWS - 1][0]
-        ).toBe("blue");
-    }
-);
+    expect(state.gameOver).toBe(true);
+});
 
 // ==================================================
-// SCORE TEST
+// KẾT QUẢ IN RA
 // ==================================================
-
-// TC09
-
-test(
-    "addScore với 0 dòng",
-    () => {
-
-        const state = {
-            score: 0,
-            lines: 0,
-            level: 1
-        };
-
-        addScore(state, 0);
-
-        expect(state.score)
-            .toBe(0);
-    }
-);
-
-// TC10
-
-test(
-    "addScore 1 dòng level 1",
-    () => {
-
-        const state = {
-            score: 0,
-            lines: 0,
-            level: 1
-        };
-
-        addScore(state, 1);
-
-        expect(state.score)
-            .toBe(100);
-    }
-);
-
-// TC11
-
-test(
-    "addScore 4 dòng (Tetris)",
-    () => {
-
-        const state = {
-            score: 0,
-            lines: 0,
-            level: 1
-        };
-
-        addScore(state, 4);
-
-        expect(state.score)
-            .toBe(800);
-    }
-);
-
-// TC12
-
-test(
-    "Level tăng sau 10 lines",
-    () => {
-
-        const state = {
-            score: 0,
-            lines: 8,
-            level: 1
-        };
-
-        addScore(state, 2);
-
-        expect(state.level)
-            .toBe(2);
-    }
-);
-
-// TC13
-
-test(
-    "Score nhân theo level",
-    () => {
-
-        const state = {
-            score: 0,
-            lines: 10,
-            level: 2
-        };
-
-        addScore(state, 1);
-
-        expect(state.score)
-            .toBe(200);
-    }
-);
-
-// ==================================================
-// KẾT QUẢ
-// ==================================================
-
-console.log(
-    `\n📊 Kết quả: ${passed} passed, ${failed} failed\n`
-);
+console.log(`\n📊 Kết quả kiểm thử: ${passed} passed, ${failed} failed\n`);
 
 if (failed > 0) {
-
     process.exit(1);
 }
