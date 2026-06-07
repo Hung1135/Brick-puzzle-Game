@@ -69,13 +69,17 @@ export default class GameController {
         const resumeBtn = document.getElementById('resume-btn');
         const restartBtn = document.getElementById('restart-btn');
         const homeBtn = document.getElementById('home-btn');
+        const inlinePauseBtn = document.getElementById('inline-pause-btn');
 
         if (startBtn) {
             startBtn.onclick = () => this.startGame();
         }
 
         if (resumeBtn) {
-            resumeBtn.onclick = () => this.resume();
+            resumeBtn.onclick = () => {
+                this.resume();
+                this._updatePauseButtonText(); // Nếu bạn muốn cập nhật chữ của nút Pause ngoài màn hình
+            };
         }
 
         if (restartBtn) {
@@ -84,6 +88,9 @@ export default class GameController {
 
         if (homeBtn) {
             homeBtn.onclick = () => this._returnToMenu();
+        }
+        if (inlinePauseBtn) {
+            inlinePauseBtn.onclick = () => this.togglePause();
         }
     }
 
@@ -549,6 +556,42 @@ export default class GameController {
         }
     }
 
+    // PAUSE LOGIC UPGRADE: ĐẢO TRẠNG THÁI VÀ ĐỔI NHÃN CHỮ (CONTINUE / PAUSE)
+
+    togglePause() {
+        if (this.state !== 'playing' && this.state !== 'paused') return;
+
+        if (this.state === 'playing') {
+            this.state = 'paused';
+            if (this._rafId) {
+                cancelAnimationFrame(this._rafId);
+                this._rafId = null;
+            }
+            this.view.showPause();
+        } else if (this.state === 'paused') {
+
+            this.state = 'playing';
+            this._lastTick = performance.now();
+            this.view.hideAll();
+            this._rafId = requestAnimationFrame(ts => this._loop(ts));
+        }
+
+        this._updatePauseButtonText();
+    }
+
+    _updatePauseButtonText() {
+        const inlinePauseBtn = document.getElementById('inline-pause-btn');
+        if (!inlinePauseBtn) return;
+
+        if (this.state === 'paused') {
+            inlinePauseBtn.textContent = 'CONTINUE';
+            inlinePauseBtn.classList.add('paused-active');
+        } else {
+            inlinePauseBtn.textContent = 'PAUSE';
+            inlinePauseBtn.classList.remove('paused-active');
+        }
+    }
+
     // ─────────────────────────────
     // VIEW SYNC (MAIN FLOW - 7.6)
     // ─────────────────────────────
@@ -562,4 +605,5 @@ export default class GameController {
         // UI HUD cập nhật sẽ nhận cả thông tin Combo mới từ model
         this.view.updateHUD(this.model, this.hi);
     }
+
 }

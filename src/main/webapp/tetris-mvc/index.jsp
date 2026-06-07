@@ -34,7 +34,16 @@
       <div class="panel-label">High Score</div>
       <div class="panel-value" id="hi-display">0</div>
     </div>
+
   </div>
+
+  <div class="panel-box panel-box-transparent">
+    <button class="btn pause-btn-control" id="inline-pause-btn">PAUSE</button>
+
+  </div>
+
+
+
 
   <!-- BOARD -->
   <div class="board-container">
