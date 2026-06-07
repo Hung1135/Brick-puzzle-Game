@@ -5,14 +5,11 @@ import { DAS, ARR, LOCK_DELAY } from "../constants.js";
 export default class GameController {
 
     constructor() {
-
         this.model = new GameModel();
         this.view = new GameView();
 
         this.state = 'start'; // start | playing | paused | over
-
         this.hi = parseInt(localStorage.getItem('tetris_hi') || '0');
-
         this.newRecord = false;
 
         this._lastTick = 0;
@@ -20,11 +17,10 @@ export default class GameController {
         this._dropAcc = 0;
         this.startTime = null;
 
-        // FIX GAME OVER MULTIPLE CALL
         this.gameOverHandled = false;
 
         // DAS / ARR
-        this._heldDir = null;   // 'left' | 'right' | null
+        this._heldDir = null;
         this._dasTimer = 0;
         this._arrTimer = 0;
 
@@ -38,16 +34,10 @@ export default class GameController {
         this.view.showStart();
         this.view.updateHUD(this.model, this.hi);
 
-        this.contextPath = window.location.pathname
-            .split("/tetris-mvc")[0];
+        this.contextPath = window.location.pathname.split("/tetris-mvc")[0];
     }
 
-    // ─────────────────────────────
-    // INPUT
-    // ─────────────────────────────
-
     _bindInputs() {
-
         document.addEventListener('keydown', e => this._onKey(e));
 
         document.addEventListener('keyup', e => {
@@ -66,65 +56,33 @@ export default class GameController {
         const restartBtn = document.getElementById('restart-btn');
         const homeBtn = document.getElementById('home-btn');
 
-        if (startBtn) {
-            startBtn.onclick = () => this.startGame();
-        }
-
-        if (resumeBtn) {
-            resumeBtn.onclick = () => this.resume();
-        }
-
-        if (restartBtn) {
-            restartBtn.onclick = () => this.restartGame();
-        }
-
-        if (homeBtn) {
-            homeBtn.onclick = () => this._returnToMenu();
-        }
+        if (startBtn) startBtn.onclick = () => this.startGame();
+        if (resumeBtn) resumeBtn.onclick = () => this.resume();
+        if (restartBtn) restartBtn.onclick = () => this.restartGame();
+        if (homeBtn) homeBtn.onclick = () => this._returnToMenu();
     }
 
-    // ─────────────────────────────
-    // GAME FLOW
-    // ─────────────────────────────
-
-    // Main Flow: Start Game Loop & Transition to Playing
-    // Implements UC-03 - START GAME
     startGame() {
-
-        // Guard: không cho phép start khi đang chơi
         if (this.state === 'playing') return;
 
-        // UC-03 Step 1.1: Người chơi nhấn nút Start → hệ thống nhận yêu cầu bắt đầu trò chơi
-        // (trigger đến từ button onclick hoặc restartGame() - đã xử lý ở _bindInputs)
-
-        // UC-03 Step 1.2: Khởi tạo bảng game với lưới ô trống
-        // UC-03 Step 1.3: Sinh block đầu tiên và đặt tại vị trí spawn
-        // (model.reset() thực hiện cả hai: reset board + _spawnPiece)
         this.model.reset();
 
-        // Kiểm tra sau reset: board phải hợp lệ và current piece phải tồn tại
         if (!this.model.current) {
             console.error("[UC-03] Spawn thất bại: không có current piece sau reset.");
             return;
         }
 
-        // UC-03 Step 1.4: Chuyển trạng thái game sang running
         this.state = 'playing';
-
-        // Reset các flag liên quan
         this.gameOverHandled = false;
         this.newRecord = false;
 
-        // Reset lock delay state
         this._lockTimer = 0;
         this._lockResets = 0;
         this._isLocking = false;
 
-        // UC-03 Step 1.5: Hiển thị bảng game và block đầu tiên
         this.view.hideAll();
         this._syncView();
 
-        // UC-03 Step 1.6: Bắt đầu vòng lặp game, block tự động rơi theo tốc độ mặc định
         this._dropAcc = 0;
         this._lastTick = performance.now();
 
@@ -137,27 +95,20 @@ export default class GameController {
     }
 
     getPlayTimeSeconds() {
-        return Math.floor(
-            (Date.now() - this.startTime) / 1000
-        );
+        return Math.floor((Date.now() - this.startTime) / 1000);
     }
 
     restartGame() {
-
         if (this.state !== 'over') return;
-
         this.startGame();
     }
 
     _returnToMenu() {
-
         this.stopGame();
-
         this.view.showStart();
     }
 
     stopGame() {
-
         if (this.state === 'over') return;
 
         this.state = 'over';
@@ -166,12 +117,11 @@ export default class GameController {
             cancelAnimationFrame(this._rafId);
         }
 
-        // Xóa current piece để render lại board sạch (không còn gạch cuối)
         this.model.current = null;
         this.view.render(this.model);
 
         this._updateHighScore();
-        //Vân Trường
+
         this.view.showGameOver({
             score: this.model.score,
             hi: this.hi,
@@ -183,102 +133,66 @@ export default class GameController {
     }
 
     pause() {
-
         if (this.state !== 'playing') return;
-
         this.state = 'paused';
-
         cancelAnimationFrame(this._rafId);
-
         this.view.showPause();
     }
 
     resume() {
-
         if (this.state !== 'paused') return;
-
         this.state = 'playing';
-
         this.view.hideAll();
-
         this._lastTick = performance.now();
-
         this._loop(this._lastTick);
     }
 
     // ─────────────────────────────
-    // GAME OVER
+    // GAME OVER (ALTERNATIVE FLOW - 7.1.2 / 7.5.2)
     // ─────────────────────────────
-
     _checkGameOver() {
-
         if (this.gameOverHandled) return;
 
         if (this.model.gameOver) {
-
             this.gameOverHandled = true;
-
+            // 🔴 [ALTERNATIVE FLOW - 7.1.2 / 7.5.2]: Chuyển quyền xử lý sang Use Case Game Over
+            console.log("[AF-7.1.2 / 7.5.2] Ngăn mọi thao tác điều khiển, chuyển sang xử lý Game Over.");
             this.handleGameOver();
         }
     }
 
     async handleGameOver() {
-
         console.log("GAME OVER FUNCTION RUNNING");
-
         try {
-
             const response = await fetch(
                 `${window.CONTEXT_PATH}/save-score`,
                 {
                     method: "POST",
-
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-
                         score: this.model.score,
-
                         level: this.model.level,
-
                         linesCleared: this.model.lines,
-
                         playTimeSeconds: this.getPlayTimeSeconds()
                     })
                 }
             );
-
             console.log("STATUS:", response.status);
-
             const text = await response.text();
-
             console.log("RESPONSE:", text);
-
         } catch (e) {
-
             console.error("SAVE SCORE ERROR:", e);
         }
-
         this.stopGame();
     }
 
     _updateHighScore() {
-
         if (this.model.score > this.hi) {
-
             this.hi = this.model.score;
-
             localStorage.setItem('tetris_hi', this.hi);
-
             this.newRecord = true;
         }
     }
-
-    // ─────────────────────────────
-    // LOCK DELAY HELPER
-    // ─────────────────────────────
 
     _resetLockDelay() {
         if (this._isLocking && this._lockResets < 15) {
@@ -287,34 +201,20 @@ export default class GameController {
         }
     }
 
-    // ─────────────────────────────
-    // INPUT HANDLER
-    // ─────────────────────────────
-
     _onKey(e) {
-        //Vân Trường
         if (this.state === 'over') {
-
-            if (e.code === 'Enter') {
-                this.restartGame();
-            }
-
+            if (e.code === 'Enter') this.restartGame();
             return;
         }
 
         if (this.state !== 'playing') {
-
-            if (e.code === 'KeyP' && this.state === 'paused') {
-                this.resume();
-            }
-
+            if (e.code === 'KeyP' && this.state === 'paused') this.resume();
             return;
         }
 
         const m = this.model;
 
         switch (e.code) {
-
             case 'ArrowLeft':
             case 'KeyA':
                 if (this._heldDir !== 'left') {
@@ -325,7 +225,6 @@ export default class GameController {
                     this._resetLockDelay();
                 }
                 break;
-
             case 'ArrowRight':
             case 'KeyD':
                 if (this._heldDir !== 'right') {
@@ -336,117 +235,89 @@ export default class GameController {
                     this._resetLockDelay();
                 }
                 break;
-
             case 'ArrowDown':
             case 'KeyS':
                 m.softDrop();
                 this._dropAcc = 0;
                 break;
-
             case 'ArrowUp':
             case 'KeyZ':
             case 'KeyW':
                 m.rotate(1);
                 this._resetLockDelay();
                 break;
-
             case 'KeyX':
                 m.rotate(-1);
                 this._resetLockDelay();
                 break;
-
             case 'Space':
                 m.hardDrop();
                 break;
-
             case 'KeyP':
                 this.pause();
                 break;
-
             default:
                 return;
         }
 
         e.preventDefault();
-
         this._checkGameOver();
-
         this._syncView();
     }
 
     // ─────────────────────────────
     // GAME LOOP
     // ─────────────────────────────
-
     _loop(timestamp) {
-
         if (this.state !== 'playing') return;
 
         const dt = timestamp - this._lastTick;
-
         this._lastTick = timestamp;
 
-        // ── DAS / ARR ──────────────────────────────────────────
+        // DAS / ARR Logic
         if (this._heldDir) {
-
             this._dasTimer += dt;
-
             if (this._dasTimer >= DAS) {
-
                 this._arrTimer += dt;
-
                 if (this._arrTimer >= ARR) {
-
                     this._arrTimer = 0;
-
                     if (this._heldDir === 'left')  { this.model.moveLeft();  this._resetLockDelay(); }
                     if (this._heldDir === 'right') { this.model.moveRight(); this._resetLockDelay(); }
-
                     this._checkGameOver();
                     this._syncView();
                 }
             }
         }
-        // ───────────────────────────────────────────────────────
 
         this._dropAcc += dt;
-
         const speed = this.model.getDropSpeed();
-
         let leveledUp = false;
 
-        // ── DROP + LOCK DELAY ───────────────────────────────────
+        // DROP + LOCK DELAY
         if (this._dropAcc >= speed) {
-
             this._dropAcc -= speed;
 
+            // 🔴 [MAIN FLOW - 7.0]: Kiểm tra khối gạch hiện hành va chạm với đáy hoặc khối cố định bên dưới (Điểm kích hoạt)
             if (!this.model._collides(this.model.current, 0, 1)) {
-
-                // Block còn rơi được → rơi bình thường, tắt lock delay
                 this.model.current.y++;
                 this._isLocking = false;
                 this._lockTimer = 0;
                 this._lockResets = 0;
-
             } else {
-
-                // Block chạm đáy → bắt đầu đếm lock delay
+                console.log("[MAIN FLOW - 7.0] Điểm kích hoạt: Khối gạch chạm đáy/va chạm vật cản bên dưới.");
                 this._isLocking = true;
             }
-
             this._checkGameOver();
         }
 
-        // Đếm lock delay timer
+        // Đếm lock delay timer và xử lý cố định mảnh gạch
         if (this._isLocking) {
-
             this._lockTimer += dt;
 
             if (this._lockTimer >= LOCK_DELAY) {
-
-                // Hết thời gian → lock thật
                 const prevLevel = this.model.level;
 
+                // Thực thi cố định (Bao gồm các bước 7.1, 7.2, 7.3, 7.4, 7.5 trong Model)
                 this.model._lockPiece();
 
                 this._isLocking = false;
@@ -457,35 +328,34 @@ export default class GameController {
                     leveledUp = true;
                 }
 
+                // Kiểm tra trạng thái trò chơi kết thúc sau khi khóa hoặc sinh mảnh mới
                 this._checkGameOver();
             }
         }
-        // ───────────────────────────────────────────────────────
 
         if (leveledUp) {
             this.view.flashLevelUp();
         }
 
+        // 🔴 [MAIN FLOW - 7.6]: Hệ thống đồng bộ mọi thay đổi lên giao diện (bao gồm điểm, combo, cấp độ,...)
         this._syncView();
 
+        // 🔴 [MAIN FLOW - 7.7]: Use Case kết thúc một chu kỳ lặp an toàn nếu trạng thái vẫn đang chơi
         if (this.state === 'playing') {
-
-            this._rafId = requestAnimationFrame(
-                ts => this._loop(ts)
-            );
+            this._rafId = requestAnimationFrame(ts => this._loop(ts));
+        } else {
+            console.log("[MAIN FLOW - 7.7] Use Case kết thúc vòng lặp (Trạng thái game đổi hoặc Kết thúc game).");
         }
     }
 
     // ─────────────────────────────
-    // VIEW SYNC
+    // VIEW SYNC (MAIN FLOW - 7.6)
     // ─────────────────────────────
-
     _syncView() {
-
         this.view.render(this.model);
-
         this.view.renderNext(this.model.next);
 
+        // UI HUD cập nhật sẽ nhận cả thông tin Combo mới từ model
         this.view.updateHUD(this.model, this.hi);
     }
 }

@@ -15,6 +15,9 @@ export default class GameModel {
         this.level = 1;
         this.gameOver = false;
 
+        // Bổ sung thuộc tính quản lý Combo (Khởi tạo chuỗi = 0)
+        this.combo = 0;
+
         this.current = null;
         this.next = null;
 
@@ -50,11 +53,14 @@ export default class GameModel {
         };
     }
 
+    // 🔴 [MAIN FLOW - 7.5]: Hệ thống tạo và đưa khối gạch tiếp theo vào vị trí bắt đầu
     _spawnPiece() {
         this.current = this.next;
         this.next = this._nextPiece();
 
+        // 🔴 [ALTERNATIVE FLOW - 7.5.1 & 7.5.2]: Kiểm tra điều kiện kết thúc khi đưa khối mới vào
         if (this._collides(this.current, 0, 0)) {
+            console.log("[AF-7.5.1] Không còn vị trí hợp lệ để xuất hiện khối mới. Kích hoạt Game Over.");
             this.gameOver = true;
         }
     }
@@ -80,7 +86,7 @@ export default class GameModel {
     }
 
     // ─────────────────────────────
-    // ROTATE
+    // ROTATE / MOVE / DROP
     // ─────────────────────────────
     _rotate(shape, dir = 1) {
         const N = shape.length;
@@ -110,9 +116,6 @@ export default class GameModel {
         }
     }
 
-    // ─────────────────────────────
-    // MOVE
-    // ─────────────────────────────
     moveLeft() {
         if (!this._collides(this.current, -1, 0)) {
             this.current.x--;
@@ -131,7 +134,7 @@ export default class GameModel {
             this.score += 1;
             return false;
         }
-
+        // Khối chạm đáy được xử lý khóa thông qua Controller hoặc gọi trực tiếp ở đây
         this._lockPiece();
         return true;
     }
@@ -149,8 +152,10 @@ export default class GameModel {
     }
 
     // ─────────────────────────────
-    // LOCK + CLEAR
+    // LOCK + CLEAR (MAIN FLOW LOGIC)
     // ─────────────────────────────
+
+    // 🔴 [MAIN FLOW - 7.1]: Hệ thống cố định khối gạch hiện tại vào bàn chơi
     _lockPiece() {
         const { shape, x, y, color } = this.current;
 
@@ -159,7 +164,9 @@ export default class GameModel {
                 if (!shape[r][c]) continue;
 
                 const ny = y + r;
+                // 🔴 [ALTERNATIVE FLOW - 7.1.1 & 7.1.2]: Phát hiện khối gạch nằm ngoài vùng hiển thị hợp lệ
                 if (ny < 0) {
+                    console.log("[AF-7.1.1] Khối gạch bị cố định ngoài vùng hiển thị hợp lệ (ny < 0).");
                     this.gameOver = true;
                     return;
                 }
@@ -168,33 +175,81 @@ export default class GameModel {
             }
         }
 
+        // 🔴 [MAIN FLOW - 7.2]: Hệ thống kiểm tra lần lượt các hàng từ dưới lên trên
         const cleared = this._clearLines();
-        this._addScore(cleared);
+
+        // 🔴 [MAIN FLOW - 7.4]: Hệ thống thực hiện cập nhật điểm số và thành tích
+        this._updatePerformanceAndScore(cleared);
+
+        // 🔴 [MAIN FLOW - 7.5]: Hệ thống tạo và đưa khối gạch tiếp theo vào vị trí bắt đầu
         this._spawnPiece();
     }
 
+    // 🔴 [MAIN FLOW - 7.3]: Loại bỏ hàng lấp đầy, bổ sung hàng trống phía trên và dịch chuyển khối xuống
     _clearLines() {
         let count = 0;
 
         for (let r = ROWS - 1; r >= 0; r--) {
+            // Kiểm tra hàng lấp đầy hoàn toàn
             if (this.board[r].every(cell => cell !== null)) {
-                this.board.splice(r, 1);
-                this.board.unshift(Array(COLS).fill(null));
+                this.board.splice(r, 1); // Loại bỏ hàng đó
+                this.board.unshift(Array(COLS).fill(null)); // Bổ sung hàng trống mới ở phía trên cùng
                 count++;
-                r++;
+                r++; // Kiểm tra lại hàng tại chỉ số này sau khi hàng trên dịch xuống
             }
         }
 
         return count;
     }
 
-    _addScore(lines) {
-        if (lines === 0) return;
+    // 🔴 [MAIN FLOW - 7.4]: Hàm tổng hợp cập nhật thành tích chi tiết theo tài liệu thiết kế
+    _updatePerformanceAndScore(linesCleared) {
 
-        this.score += (SCORE_TABLE[lines] || 800) * this.level;
-        this.lines += lines;
+        // 🔴 [ALTERNATIVE FLOW - 7.2.1 -> 7.2.3]: Tại bước 7.2 không phát hiện hàng nào được lấp đầy
+        if (linesCleared === 0) {
+            console.log("[AF-7.2.1 & 7.2.2] Không có hàng nào bị xóa. Không cập nhật điểm hàng.");
+            // 🔴 [ALTERNATIVE FLOW - 7.2.3]: Đặt lại chuỗi Combo hiện tại do lượt chơi không tạo được hàng bị xóa
+            this.combo = 0;
+            return;
+        }
 
+        console.log(`[MAIN FLOW - 7.2] Phát hiện xóa thành công: ${linesCleared} hàng.`);
+
+        // 🔴 7.4.1. Cập nhật số lượng dòng đã xóa và tính điểm cơ bản dựa trên số dòng được loại bỏ
+        this.lines += linesCleared;
+        let baseScore = (SCORE_TABLE[linesCleared] || 800) * this.level;
+        this.score += baseScore;
+        console.log(`[7.4.1] Điểm cơ bản nhận được từ hàng xóa: +${baseScore}`);
+
+        // 🔴 7.4.2. Tăng giá trị Combo và cộng điểm thưởng Combo tương ứng
+        // Combo được tính từ lần xóa hàng liên tiếp thứ 2 trở đi (tức là lần 1: combo = 1, lần 2: combo = 2...)
+        this.combo++;
+        if (this.combo > 1) {
+            let comboBonus = (this.combo - 1) * 50 * this.level; // Công thức thưởng Combo mẫu (Combo nhân cấp độ)
+            this.score += comboBonus;
+            console.log(`[7.4.2] Chuỗi Combo tăng lên: ${this.combo}. Thưởng Combo: +${comboBonus}`);
+        } else {
+            console.log(`[7.4.2] Bắt đầu chuỗi Combo (Lượt xóa đầu tiên), combo hiện tại: ${this.combo}`);
+        }
+
+        // 🔴 7.4.3. Kiểm tra trạng thái Perfect Clear
+        if (this._isPerfectClear()) {
+            let perfectClearBonus = 2000 * this.level; // Điểm thưởng Perfect Clear mẫu nhân với level
+            this.score += perfectClearBonus;
+            console.log(`[7.4.3] Tuyệt vời! PERFECT CLEAR hoàn toàn bàn chơi. Thưởng: +${perfectClearBonus}`);
+        } else {
+            // 🔴 [ALTERNATIVE FLOW - 7.4.3.1 -> 7.4.3.3] Không thỏa điều kiện Perfect Clear
+            console.log("[AF-7.4.3.1] Bàn chơi vẫn còn khối tồn tại. Không cộng điểm Perfect Clear.");
+        }
+
+        // 🔴 7.4.4. Tính toán và cập nhật cấp độ mới nếu đạt điều kiện tăng cấp (Mỗi 10 dòng lên 1 cấp)
         this.level = Math.floor(this.lines / 10) + 1;
+        console.log(`[7.4.4] Trạng thái sau xử lý: Level: ${this.level} | Tổng điểm: ${this.score}`);
+    }
+
+    // Hàm phụ kiểm tra xem toàn bộ ma trận board có trống sạch hay không
+    _isPerfectClear() {
+        return this.board.every(row => row.every(cell => cell === null));
     }
 
     // ─────────────────────────────
