@@ -1,211 +1,520 @@
 /**
- * Test file cho chức năng _clearLines() trong GameModel
+ * UC-07
+ * CLEAR LINE & SCORE CALCULATION TEST
+ *
+ * Mục đích:
+ * Kiểm thử chức năng:
+ * - Xóa dòng đầy (_clearLines)
+ * - Cập nhật điểm (_addScore)
+ * - Cập nhật tổng số dòng đã clear
+ * - Tăng level
+ *
+ * Chạy:
+ * node clearLineTesting.js
  */
 
-// ─────────────────────────────
-// MOCK CONSTANTS (copy từ constants.js của bạn)
-// ─────────────────────────────
+// ==================================================
+// MOCK CONSTANTS
+// ==================================================
+// Sao chép từ constants.js để độc lập với project
+// ==================================================
+
 const COLS = 10;
 const ROWS = 20;
-const SCORE_TABLE = { 1: 100, 2: 300, 3: 500, 4: 800 };
 
-// ─────────────────────────────
-// EXTRACT LOGIC CẦN TEST
-// (copy 2 method từ GameModel, không phụ thuộc `this.current`)
-// ─────────────────────────────
+const SCORE_TABLE = {
+    1: 100,
+    2: 300,
+    3: 500,
+    4: 800
+};
+
+// ==================================================
+// EXTRACT LOGIC TỪ GameModel
+// ==================================================
+
+/**
+ * UC-07
+ * Xóa các hàng đầy trong board
+ *
+ * Trả về:
+ * số dòng đã được xóa
+ */
 function clearLines(board) {
+
     let count = 0;
 
     for (let r = ROWS - 1; r >= 0; r--) {
+
+        // Nếu toàn bộ ô đều có dữ liệu
+        // => hàng đã đầy
         if (board[r].every(cell => cell !== null)) {
+
+            // Xóa hàng đầy
             board.splice(r, 1);
-            board.unshift(Array(COLS).fill(null));
+
+            // Thêm hàng rỗng phía trên
+            board.unshift(
+                Array(COLS).fill(null)
+            );
+
             count++;
-            r++; // kiểm tra lại dòng vừa dịch xuống
+
+            // Kiểm tra lại vị trí hiện tại
+            // vì các hàng đã dịch xuống
+            r++;
         }
     }
 
     return count;
 }
 
+/**
+ * UC-07
+ * Cập nhật:
+ * - Score
+ * - Lines
+ * - Level
+ */
 function addScore(state, lines) {
+
     if (lines === 0) return;
-    state.score += (SCORE_TABLE[lines] || 800) * state.level;
+
+    // Cộng điểm theo bảng SCORE_TABLE
+    state.score +=
+        (SCORE_TABLE[lines] || 800)
+        * state.level;
+
+    // Tổng số dòng đã clear
     state.lines += lines;
-    state.level = Math.floor(state.lines / 10) + 1;
+
+    // Tăng level mỗi 10 lines
+    state.level =
+        Math.floor(state.lines / 10) + 1;
 }
 
-// ─────────────────────────────
-// HELPER
-// ─────────────────────────────
+// ==================================================
+// HELPER FUNCTIONS
+// ==================================================
 
-/** Tạo board trống ROWS x COLS */
+/**
+ * Tạo board rỗng
+ */
 function emptyBoard() {
-    return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+
+    return Array.from(
+        { length: ROWS },
+        () => Array(COLS).fill(null)
+    );
 }
 
-/** Điền đầy 1 hàng tại row r */
+/**
+ * Điền đầy một hàng
+ */
 function fillRow(board, r) {
-    board[r] = Array(COLS).fill('red');
+
+    board[r] =
+        Array(COLS).fill("red");
 }
 
-/** Điền một phần hàng (không đầy) */
-function fillPartial(board, r, cols = 5) {
-    for (let c = 0; c < cols; c++) board[r][c] = 'red';
+/**
+ * Điền một phần hàng
+ */
+function fillPartial(
+    board,
+    r,
+    cols = 5
+) {
+
+    for (let c = 0; c < cols; c++) {
+
+        board[r][c] = "red";
+    }
 }
 
-// ─────────────────────────────
-// MINI TEST RUNNER
-// ─────────────────────────────
+// ==================================================
+// MINI TEST FRAMEWORK
+// ==================================================
+
 let passed = 0;
 let failed = 0;
 
 function test(name, fn) {
+
     try {
+
         fn();
-        console.log(`  ✅ PASS: ${name}`);
+
+        console.log(
+            `✅ PASS: ${name}`
+        );
+
         passed++;
+
     } catch (e) {
-        console.log(`  ❌ FAIL: ${name}`);
-        console.log(`     → ${e.message}`);
+
+        console.log(
+            `❌ FAIL: ${name}`
+        );
+
+        console.log(
+            `   → ${e.message}`
+        );
+
         failed++;
     }
 }
 
 function expect(actual) {
+
     return {
+
         toBe(expected) {
-            if (actual !== expected)
-                throw new Error(`Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+
+            if (actual !== expected) {
+
+                throw new Error(
+                    `Expected ${expected}, got ${actual}`
+                );
+            }
         },
+
         toEqual(expected) {
-            const a = JSON.stringify(actual);
-            const b = JSON.stringify(expected);
-            if (a !== b)
-                throw new Error(`Expected ${b}, got ${a}`);
-        },
+
+            const a =
+                JSON.stringify(actual);
+
+            const b =
+                JSON.stringify(expected);
+
+            if (a !== b) {
+
+                throw new Error(
+                    `Expected ${b}, got ${a}`
+                );
+            }
+        }
     };
 }
 
-// ─────────────────────────────
-// TEST CASES
-// ─────────────────────────────
+// ==================================================
+// UC-07 TEST CASES
+// ==================================================
 
-console.log('\n🧪 _clearLines() Tests\n');
+console.log(
+    "\n🧪 UC-07 CLEAR LINE TESTS\n"
+);
 
-// ── 1. Board trống → không xóa gì ──
-test('Board trống: trả về 0 dòng cleared', () => {
-    const board = emptyBoard();
-    const count = clearLines(board);
-    expect(count).toBe(0);
-    expect(board.length).toBe(ROWS);
-});
+// --------------------------------------------------
+// TC01
+// Board trống
+// --------------------------------------------------
 
-// ── 2. 1 hàng đầy → xóa 1 ──
-test('1 hàng đầy ở đáy: xóa 1 dòng', () => {
-    const board = emptyBoard();
-    fillRow(board, ROWS - 1); // hàng cuối
-    const count = clearLines(board);
-    expect(count).toBe(1);
-    expect(board.length).toBe(ROWS); // board vẫn đủ ROWS
-});
+test(
+    "Board trống: trả về 0 dòng cleared",
+    () => {
 
-// ── 3. Hàng đầy bị xóa → hàng mới trên cùng phải null hết ──
-test('Hàng đầu tiên sau khi clear phải rỗng', () => {
-    const board = emptyBoard();
-    fillRow(board, ROWS - 1);
-    clearLines(board);
-    expect(board[0].every(c => c === null)).toBe(true);
-});
+        const board =
+            emptyBoard();
 
-// ── 4. Hàng không đầy → không xóa ──
-test('Hàng không đầy: không xóa', () => {
-    const board = emptyBoard();
-    fillPartial(board, ROWS - 1, 9); // 9/10 ô
-    const count = clearLines(board);
-    expect(count).toBe(0);
-});
+        const count =
+            clearLines(board);
 
-// ── 5. 2 hàng đầy liên tiếp ──
-test('2 hàng đầy liên tiếp: xóa 2', () => {
-    const board = emptyBoard();
-    fillRow(board, ROWS - 1);
-    fillRow(board, ROWS - 2);
-    const count = clearLines(board);
-    expect(count).toBe(2);
-    expect(board.length).toBe(ROWS);
-});
+        expect(count).toBe(0);
 
-// ── 6. 4 hàng đầy (Tetris!) ──
-test('4 hàng đầy (Tetris): xóa 4', () => {
-    const board = emptyBoard();
-    fillRow(board, ROWS - 1);
-    fillRow(board, ROWS - 2);
-    fillRow(board, ROWS - 3);
-    fillRow(board, ROWS - 4);
-    const count = clearLines(board);
-    expect(count).toBe(4);
-});
+        expect(board.length)
+            .toBe(ROWS);
+    }
+);
 
-// ── 7. 2 hàng đầy không liên tiếp ──
-test('2 hàng đầy cách nhau: xóa đúng 2', () => {
-    const board = emptyBoard();
-    fillRow(board, ROWS - 1);
-    fillRow(board, ROWS - 5); // cách 3 hàng
-    const count = clearLines(board);
-    expect(count).toBe(2);
-    expect(board.length).toBe(ROWS);
-});
+// --------------------------------------------------
+// TC02
+// 1 hàng đầy
+// --------------------------------------------------
 
-// ── 8. Sau khi xóa, các hàng bên trên dịch xuống đúng ──
-test('Hàng bên trên dịch xuống sau khi clear', () => {
-    const board = emptyBoard();
-    // Đặt marker ở hàng ROWS-2
-    board[ROWS - 2][0] = 'blue';
-    // Điền đầy hàng ROWS-1
-    fillRow(board, ROWS - 1);
-    clearLines(board);
-    // Sau clear, 'blue' phải dịch xuống hàng ROWS-1
-    expect(board[ROWS - 1][0]).toBe('blue');
-});
+test(
+    "1 hàng đầy ở đáy: xóa 1 dòng",
+    () => {
 
-// ── 9. _addScore: 0 dòng → score không đổi ──
-test('addScore với 0 dòng: score không thay đổi', () => {
-    const state = { score: 0, lines: 0, level: 1 };
-    addScore(state, 0);
-    expect(state.score).toBe(0);
-});
+        const board =
+            emptyBoard();
 
-// ── 10. _addScore: 1 dòng level 1 ──
-test('addScore 1 dòng level 1: score = 100', () => {
-    const state = { score: 0, lines: 0, level: 1 };
-    addScore(state, 1);
-    expect(state.score).toBe(100);
-});
+        fillRow(
+            board,
+            ROWS - 1
+        );
 
-// ── 11. _addScore: 4 dòng level 1 (Tetris bonus) ──
-test('addScore 4 dòng level 1 (Tetris): score = 800', () => {
-    const state = { score: 0, lines: 0, level: 1 };
-    addScore(state, 4);
-    expect(state.score).toBe(800);
-});
+        const count =
+            clearLines(board);
 
-// ── 12. _addScore: level tăng sau 10 lines ──
-test('addScore: level tăng lên 2 sau khi đủ 10 lines', () => {
-    const state = { score: 0, lines: 8, level: 1 };
-    addScore(state, 2); // tổng 10 lines
-    expect(state.level).toBe(2);
-});
+        expect(count)
+            .toBe(1);
 
-// ── 13. _addScore: score nhân theo level ──
-test('addScore: score nhân theo level (level 2, 1 dòng = 200)', () => {
-    const state = { score: 0, lines: 10, level: 2 };
-    addScore(state, 1);
-    expect(state.score).toBe(200); // 100 * level 2
-});
+        expect(board.length)
+            .toBe(ROWS);
+    }
+);
 
-// ─────────────────────────────
+// --------------------------------------------------
+// TC03
+// Hàng mới phía trên
+// --------------------------------------------------
+
+test(
+    "Hàng đầu tiên sau khi clear phải rỗng",
+    () => {
+
+        const board =
+            emptyBoard();
+
+        fillRow(
+            board,
+            ROWS - 1
+        );
+
+        clearLines(board);
+
+        expect(
+            board[0].every(
+                c => c === null
+            )
+        ).toBe(true);
+    }
+);
+
+// --------------------------------------------------
+// TC04
+// Hàng chưa đầy
+// --------------------------------------------------
+
+test(
+    "Hàng không đầy: không xóa",
+    () => {
+
+        const board =
+            emptyBoard();
+
+        fillPartial(
+            board,
+            ROWS - 1,
+            9
+        );
+
+        const count =
+            clearLines(board);
+
+        expect(count)
+            .toBe(0);
+    }
+);
+
+// --------------------------------------------------
+// TC05
+// 2 hàng liên tiếp
+// --------------------------------------------------
+
+test(
+    "2 hàng đầy liên tiếp: xóa 2",
+    () => {
+
+        const board =
+            emptyBoard();
+
+        fillRow(board, ROWS - 1);
+        fillRow(board, ROWS - 2);
+
+        const count =
+            clearLines(board);
+
+        expect(count)
+            .toBe(2);
+    }
+);
+
+// --------------------------------------------------
+// TC06
+// Tetris (4 hàng)
+// --------------------------------------------------
+
+test(
+    "4 hàng đầy (Tetris): xóa 4",
+    () => {
+
+        const board =
+            emptyBoard();
+
+        fillRow(board, ROWS - 1);
+        fillRow(board, ROWS - 2);
+        fillRow(board, ROWS - 3);
+        fillRow(board, ROWS - 4);
+
+        const count =
+            clearLines(board);
+
+        expect(count)
+            .toBe(4);
+    }
+);
+
+// --------------------------------------------------
+// TC07
+// Hàng đầy không liên tiếp
+// --------------------------------------------------
+
+test(
+    "2 hàng đầy cách nhau",
+    () => {
+
+        const board =
+            emptyBoard();
+
+        fillRow(board, ROWS - 1);
+        fillRow(board, ROWS - 5);
+
+        const count =
+            clearLines(board);
+
+        expect(count)
+            .toBe(2);
+    }
+);
+
+// --------------------------------------------------
+// TC08
+// Kiểm tra dịch hàng
+// --------------------------------------------------
+
+test(
+    "Hàng phía trên dịch xuống",
+    () => {
+
+        const board =
+            emptyBoard();
+
+        board[ROWS - 2][0] =
+            "blue";
+
+        fillRow(
+            board,
+            ROWS - 1
+        );
+
+        clearLines(board);
+
+        expect(
+            board[ROWS - 1][0]
+        ).toBe("blue");
+    }
+);
+
+// ==================================================
+// SCORE TEST
+// ==================================================
+
+// TC09
+
+test(
+    "addScore với 0 dòng",
+    () => {
+
+        const state = {
+            score: 0,
+            lines: 0,
+            level: 1
+        };
+
+        addScore(state, 0);
+
+        expect(state.score)
+            .toBe(0);
+    }
+);
+
+// TC10
+
+test(
+    "addScore 1 dòng level 1",
+    () => {
+
+        const state = {
+            score: 0,
+            lines: 0,
+            level: 1
+        };
+
+        addScore(state, 1);
+
+        expect(state.score)
+            .toBe(100);
+    }
+);
+
+// TC11
+
+test(
+    "addScore 4 dòng (Tetris)",
+    () => {
+
+        const state = {
+            score: 0,
+            lines: 0,
+            level: 1
+        };
+
+        addScore(state, 4);
+
+        expect(state.score)
+            .toBe(800);
+    }
+);
+
+// TC12
+
+test(
+    "Level tăng sau 10 lines",
+    () => {
+
+        const state = {
+            score: 0,
+            lines: 8,
+            level: 1
+        };
+
+        addScore(state, 2);
+
+        expect(state.level)
+            .toBe(2);
+    }
+);
+
+// TC13
+
+test(
+    "Score nhân theo level",
+    () => {
+
+        const state = {
+            score: 0,
+            lines: 10,
+            level: 2
+        };
+
+        addScore(state, 1);
+
+        expect(state.score)
+            .toBe(200);
+    }
+);
+
+// ==================================================
 // KẾT QUẢ
-// ─────────────────────────────
-console.log(`\n📊 Kết quả: ${passed} passed, ${failed} failed\n`);
-if (failed > 0) process.exit(1);
+// ==================================================
+
+console.log(
+    `\n📊 Kết quả: ${passed} passed, ${failed} failed\n`
+);
+
+if (failed > 0) {
+
+    process.exit(1);
+}

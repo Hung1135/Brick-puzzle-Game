@@ -105,21 +105,48 @@ export default class GameView {
     }
   }
 
-  // ─────────────────────────────
-  // HUD
-  // ─────────────────────────────
-  updateHUD(model, hi) {
-    this.scoreEl.textContent = model.score.toLocaleString();
-    this.linesEl.textContent = model.lines;
-    this.levelEl.textContent = model.level;
-    this.hiEl.textContent = hi.toLocaleString();
-  }
+    // ==================================================
+// CẬP NHẬT HUD
+// ==================================================
+// Hiển thị dữ liệu trong khi chơi:
+// - Score hiện tại
+// - Tổng số dòng đã clear
+// - Level hiện tại
+// - High Score
+// ==================================================
 
-  flashLevelUp() {
-    this.levelEl.classList.add('level-up');
-    setTimeout(() => this.levelEl.classList.remove('level-up'), 300);
-  }
+    updateHUD(model, hi) {
 
+        this.scoreEl.textContent =
+            model.score.toLocaleString();
+
+        this.linesEl.textContent =
+            model.lines;
+
+        this.levelEl.textContent =
+            model.level;
+
+        this.hiEl.textContent =
+            hi.toLocaleString();
+    }
+    // ==================================================
+    // LEVEL UP EFFECT
+    // ==================================================
+    // Hiệu ứng khi người chơi lên level mới
+    // ==================================================
+
+    flashLevelUp() {
+
+        this.levelEl.classList
+            .add('level-up');
+
+        setTimeout(() => {
+
+            this.levelEl.classList
+                .remove('level-up');
+
+        }, 300);
+    }
 
   showStart() {
     this._showOnly('start-screen');
@@ -128,7 +155,19 @@ export default class GameView {
   showPause() {
     this._showOnly('pause-screen');
   }
-    //Vân Trường
+    // ==================================================
+// UC-13
+// HIỂN THỊ MÀN HÌNH GAME OVER
+// ==================================================
+// Chức năng:
+// - Hiển thị điểm cuối trận
+// - Hiển thị level cao nhất đạt được
+// - Hiển thị tổng số dòng đã clear
+// - Hiển thị thời gian chơi
+// - Hiển thị thông báo New Record
+// - Hiển thị High Score
+// ==================================================
+
     showGameOver({
                      score,
                      hi,
@@ -138,30 +177,64 @@ export default class GameView {
                      newRecord
                  }) {
 
-        const minutes = Math.floor(playTime / 60);
-        const seconds = playTime % 60;
+        // Chuyển đổi thời gian từ giây
+        // sang định dạng phút:giây
+        const minutes =
+            Math.floor(playTime / 60);
 
+        const seconds =
+            playTime % 60;
+
+        // Hiển thị thống kê cuối trận
         if (this.finalEl) {
 
             this.finalEl.innerHTML = `
-            <div>Score: ${score.toLocaleString()}</div>
-            <div>Level: ${level}</div>
-            <div>Lines: ${lines}</div>
-            <div>Time: ${minutes}:${seconds.toString().padStart(2,'0')}</div>
+
+            <div>
+                Score:
+                ${score.toLocaleString()}
+            </div>
+
+            <div>
+                Level:
+                ${level}
+            </div>
+
+            <div>
+                Lines:
+                ${lines}
+            </div>
+
+            <div>
+                Time:
+                ${minutes}:${seconds
+                .toString()
+                .padStart(2,'0')}
+            </div>
 
             ${
                 newRecord
-                    ? '<div class="new-record">🏆 NEW RECORD!</div>'
+                    ? `
+                        <div class="new-record">
+                            🏆 NEW RECORD!
+                        </div>
+                      `
                     : ''
             }
         `;
         }
 
+        // Cập nhật High Score
         if (this.hiEl) {
-            this.hiEl.textContent = hi.toLocaleString();
+
+            this.hiEl.textContent =
+                hi.toLocaleString();
         }
 
-        this._showOnly('gameover-screen');
+        // Hiển thị màn hình Game Over
+        this._showOnly(
+            'gameover-screen'
+        );
     }
 
   hideAll() {

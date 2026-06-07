@@ -53,14 +53,11 @@ export default class GameModel {
         };
     }
 
-    // 🔴 [MAIN FLOW - 7.5]: Hệ thống tạo và đưa khối gạch tiếp theo vào vị trí bắt đầu
     _spawnPiece() {
         this.current = this.next;
         this.next = this._nextPiece();
 
-        // 🔴 [ALTERNATIVE FLOW - 7.5.1 & 7.5.2]: Kiểm tra điều kiện kết thúc khi đưa khối mới vào
         if (this._collides(this.current, 0, 0)) {
-            console.log("[AF-7.5.1] Không còn vị trí hợp lệ để xuất hiện khối mới. Kích hoạt Game Over.");
             this.gameOver = true;
         }
     }
@@ -86,7 +83,7 @@ export default class GameModel {
     }
 
     // ─────────────────────────────
-    // ROTATE / MOVE / DROP
+    // ROTATE
     // ─────────────────────────────
     _rotate(shape, dir = 1) {
         const N = shape.length;
@@ -116,6 +113,9 @@ export default class GameModel {
         }
     }
 
+    // ─────────────────────────────
+    // MOVE
+    // ─────────────────────────────
     moveLeft() {
         if (!this._collides(this.current, -1, 0)) {
             this.current.x--;
@@ -134,7 +134,7 @@ export default class GameModel {
             this.score += 1;
             return false;
         }
-        // Khối chạm đáy được xử lý khóa thông qua Controller hoặc gọi trực tiếp ở đây
+
         this._lockPiece();
         return true;
     }
@@ -159,14 +159,15 @@ export default class GameModel {
     _lockPiece() {
         const { shape, x, y, color } = this.current;
 
+        // Ghi dữ liệu khối hiện tại xuống board
         for (let r = 0; r < shape.length; r++) {
             for (let c = 0; c < shape[r].length; c++) {
+
                 if (!shape[r][c]) continue;
 
                 const ny = y + r;
                 // 🔴 [ALTERNATIVE FLOW - 7.1.1 & 7.1.2]: Phát hiện khối gạch nằm ngoài vùng hiển thị hợp lệ
                 if (ny < 0) {
-                    console.log("[AF-7.1.1] Khối gạch bị cố định ngoài vùng hiển thị hợp lệ (ny < 0).");
                     this.gameOver = true;
                     return;
                 }
@@ -176,9 +177,10 @@ export default class GameModel {
         }
 
         // 🔴 [MAIN FLOW - 7.2]: Hệ thống kiểm tra lần lượt các hàng từ dưới lên trên
+        // Tìm và xóa các dòng đầy
         const cleared = this._clearLines();
 
-        // 🔴 [MAIN FLOW - 7.4]: Hệ thống thực hiện cập nhật điểm số và thành tích
+        // 🔴 [MAIN FLOW - 7.4]: Hệ thống thực hiện cập nhật điểm số, combo, perfect clear và cấp độ mới
         this._updatePerformanceAndScore(cleared);
 
         // 🔴 [MAIN FLOW - 7.5]: Hệ thống tạo và đưa khối gạch tiếp theo vào vị trí bắt đầu
@@ -190,15 +192,24 @@ export default class GameModel {
         let count = 0;
 
         for (let r = ROWS - 1; r >= 0; r--) {
-            // Kiểm tra hàng lấp đầy hoàn toàn
+
+            // Kiểm tra tất cả ô trong hàng đều có dữ liệu
             if (this.board[r].every(cell => cell !== null)) {
-                this.board.splice(r, 1); // Loại bỏ hàng đó
-                this.board.unshift(Array(COLS).fill(null)); // Bổ sung hàng trống mới ở phía trên cùng
+
+                // Xóa hàng đầy
+                this.board.splice(r, 1);
+
+                // Thêm hàng trống ở phía trên
+                this.board.unshift(Array(COLS).fill(null));
+
                 count++;
-                r++; // Kiểm tra lại hàng tại chỉ số này sau khi hàng trên dịch xuống
+
+                // Kiểm tra lại vị trí hiện tại để xử lý trường hợp clear nhiều dòng liên tiếp
+                r++;
             }
         }
 
+        // Trả về số dòng đã clear
         return count;
     }
 
@@ -222,10 +233,9 @@ export default class GameModel {
         console.log(`[7.4.1] Điểm cơ bản nhận được từ hàng xóa: +${baseScore}`);
 
         // 🔴 7.4.2. Tăng giá trị Combo và cộng điểm thưởng Combo tương ứng
-        // Combo được tính từ lần xóa hàng liên tiếp thứ 2 trở đi (tức là lần 1: combo = 1, lần 2: combo = 2...)
         this.combo++;
         if (this.combo > 1) {
-            let comboBonus = (this.combo - 1) * 50 * this.level; // Công thức thưởng Combo mẫu (Combo nhân cấp độ)
+            let comboBonus = (this.combo - 1) * 50 * this.level;
             this.score += comboBonus;
             console.log(`[7.4.2] Chuỗi Combo tăng lên: ${this.combo}. Thưởng Combo: +${comboBonus}`);
         } else {
@@ -234,7 +244,7 @@ export default class GameModel {
 
         // 🔴 7.4.3. Kiểm tra trạng thái Perfect Clear
         if (this._isPerfectClear()) {
-            let perfectClearBonus = 2000 * this.level; // Điểm thưởng Perfect Clear mẫu nhân với level
+            let perfectClearBonus = 2000 * this.level;
             this.score += perfectClearBonus;
             console.log(`[7.4.3] Tuyệt vời! PERFECT CLEAR hoàn toàn bàn chơi. Thưởng: +${perfectClearBonus}`);
         } else {
