@@ -2,18 +2,18 @@ export const COLS = 10;
 export const ROWS = 20;
 export const CELL = 28;
 export const NEXT_CELL = 22;
-export const DAS = 133;  // ms chờ trước khi auto-repeat bắt đầu
-export const ARR = 50;   // ms giữa mỗi bước lặp
-
+export const DAS = 133;
+export const ARR = 50;
+export const LOCK_DELAY = 500;
 
 export const TETROMINOES = [
-  { shape: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], color: '#00f5ff' },
-  { shape: [[1,1],[1,1]], color: '#ffe600' },
-  { shape: [[0,1,0],[1,1,1],[0,0,0]], color: '#c87dff' },
-  { shape: [[0,1,1],[1,1,0],[0,0,0]], color: '#00ff87' },
-  { shape: [[1,1,0],[0,1,1],[0,0,0]], color: '#ff2d6e' },
-  { shape: [[1,0,0],[1,1,1],[0,0,0]], color: '#ff8c00' },
-  { shape: [[0,0,1],[1,1,1],[0,0,0]], color: '#1a8fff' },
+    { shape: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], color: '#00f5ff' },
+    { shape: [[1,1],[1,1]], color: '#ffe600' },
+    { shape: [[0,1,0],[1,1,1],[0,0,0]], color: '#c87dff' },
+    { shape: [[0,1,1],[1,1,0],[0,0,0]], color: '#00ff87' },
+    { shape: [[1,1,0],[0,1,1],[0,0,0]], color: '#ff2d6e' },
+    { shape: [[1,0,0],[1,1,1],[0,0,0]], color: '#ff8c00' },
+    { shape: [[0,0,1],[1,1,1],[0,0,0]], color: '#1a8fff' },
 ];
 
 export const SCORE_TABLE = [0, 100, 300, 500, 800];

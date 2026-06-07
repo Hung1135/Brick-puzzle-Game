@@ -1,6 +1,7 @@
 import GameModel from "../model/GameModel.js";
 import GameView from "../view/GameView.js";
-import { DAS, ARR } from "../constants.js";
+import { DAS, ARR, LOCK_DELAY } from "../constants.js";
+
 export default class GameController {
 
     constructor() {
@@ -21,9 +22,16 @@ export default class GameController {
 
         // FIX GAME OVER MULTIPLE CALL
         this.gameOverHandled = false;
+
+        // DAS / ARR
         this._heldDir = null;   // 'left' | 'right' | null
         this._dasTimer = 0;
         this._arrTimer = 0;
+
+        // LOCK DELAY
+        this._lockTimer = 0;
+        this._lockResets = 0;
+        this._isLocking = false;
 
         this._bindInputs();
 
@@ -107,6 +115,11 @@ export default class GameController {
         this.gameOverHandled = false;
         this.newRecord = false;
 
+        // Reset lock delay state
+        this._lockTimer = 0;
+        this._lockResets = 0;
+        this._isLocking = false;
+
         // UC-03 Step 1.5: Hiển thị bảng game và block đầu tiên
         this.view.hideAll();
         this._syncView();
@@ -122,6 +135,7 @@ export default class GameController {
         this._loop(this._lastTick);
         this.startTime = Date.now();
     }
+
     getPlayTimeSeconds() {
         return Math.floor(
             (Date.now() - this.startTime) / 1000
@@ -263,6 +277,17 @@ export default class GameController {
     }
 
     // ─────────────────────────────
+    // LOCK DELAY HELPER
+    // ─────────────────────────────
+
+    _resetLockDelay() {
+        if (this._isLocking && this._lockResets < 15) {
+            this._lockTimer = 0;
+            this._lockResets++;
+        }
+    }
+
+    // ─────────────────────────────
     // INPUT HANDLER
     // ─────────────────────────────
 
@@ -297,6 +322,7 @@ export default class GameController {
                     this._dasTimer = 0;
                     this._arrTimer = 0;
                     m.moveLeft();
+                    this._resetLockDelay();
                 }
                 break;
 
@@ -307,6 +333,7 @@ export default class GameController {
                     this._dasTimer = 0;
                     this._arrTimer = 0;
                     m.moveRight();
+                    this._resetLockDelay();
                 }
                 break;
 
@@ -320,10 +347,12 @@ export default class GameController {
             case 'KeyZ':
             case 'KeyW':
                 m.rotate(1);
+                this._resetLockDelay();
                 break;
 
             case 'KeyX':
                 m.rotate(-1);
+                this._resetLockDelay();
                 break;
 
             case 'Space':
@@ -370,8 +399,8 @@ export default class GameController {
 
                     this._arrTimer = 0;
 
-                    if (this._heldDir === 'left')  this.model.moveLeft();
-                    if (this._heldDir === 'right') this.model.moveRight();
+                    if (this._heldDir === 'left')  { this.model.moveLeft();  this._resetLockDelay(); }
+                    if (this._heldDir === 'right') { this.model.moveRight(); this._resetLockDelay(); }
 
                     this._checkGameOver();
                     this._syncView();
@@ -386,27 +415,52 @@ export default class GameController {
 
         let leveledUp = false;
 
+        // ── DROP + LOCK DELAY ───────────────────────────────────
         if (this._dropAcc >= speed) {
 
             this._dropAcc -= speed;
 
-            const prevLevel = this.model.level;
-
             if (!this.model._collides(this.model.current, 0, 1)) {
 
+                // Block còn rơi được → rơi bình thường, tắt lock delay
                 this.model.current.y++;
+                this._isLocking = false;
+                this._lockTimer = 0;
+                this._lockResets = 0;
 
             } else {
 
-                this.model._lockPiece();
-
-                if (this.model.level !== prevLevel) {
-                    leveledUp = true;
-                }
+                // Block chạm đáy → bắt đầu đếm lock delay
+                this._isLocking = true;
             }
 
             this._checkGameOver();
         }
+
+        // Đếm lock delay timer
+        if (this._isLocking) {
+
+            this._lockTimer += dt;
+
+            if (this._lockTimer >= LOCK_DELAY) {
+
+                // Hết thời gian → lock thật
+                const prevLevel = this.model.level;
+
+                this.model._lockPiece();
+
+                this._isLocking = false;
+                this._lockTimer = 0;
+                this._lockResets = 0;
+
+                if (this.model.level !== prevLevel) {
+                    leveledUp = true;
+                }
+
+                this._checkGameOver();
+            }
+        }
+        // ───────────────────────────────────────────────────────
 
         if (leveledUp) {
             this.view.flashLevelUp();
