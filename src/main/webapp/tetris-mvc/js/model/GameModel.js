@@ -149,16 +149,36 @@ export default class GameModel {
     }
 
     // ─────────────────────────────
-    // LOCK + CLEAR
-    // ─────────────────────────────
+// LOCK + CLEAR
+// ─────────────────────────────
+
     _lockPiece() {
+
+        // ==================================================
+        // UC-07: CLEAR LINE
+        // ==================================================
+        // Sau khi khối không thể di chuyển xuống nữa:
+        // 1. Gắn khối hiện tại vào board
+        // 2. Kiểm tra các hàng đầy
+        // 3. Xóa các hàng đầy
+        // 4. Cập nhật điểm số
+        // 5. Cập nhật tổng số dòng đã clear
+        // 6. Tăng level nếu đủ điều kiện
+        // 7. Sinh khối mới
+        // ==================================================
+
         const { shape, x, y, color } = this.current;
 
+        // Ghi dữ liệu khối hiện tại xuống board
         for (let r = 0; r < shape.length; r++) {
             for (let c = 0; c < shape[r].length; c++) {
+
                 if (!shape[r][c]) continue;
 
                 const ny = y + r;
+
+                // Nếu khối bị khóa ở phía trên board
+                // => Game Over
                 if (ny < 0) {
                     this.gameOver = true;
                     return;
@@ -168,33 +188,82 @@ export default class GameModel {
             }
         }
 
+        // UC-07:
+        // Tìm và xóa các dòng đầy
         const cleared = this._clearLines();
+
+        // UC-07:
+        // Cập nhật điểm, số dòng và level
         this._addScore(cleared);
+
+        // Sinh khối tiếp theo
         this._spawnPiece();
     }
 
     _clearLines() {
+
+        // ==================================================
+        // UC-07: CLEAR LINE
+        // ==================================================
+        // Chức năng:
+        // - Duyệt từ dưới lên trên
+        // - Kiểm tra hàng nào đã đầy
+        // - Xóa hàng đầy
+        // - Đẩy toàn bộ hàng phía trên xuống
+        // - Thêm hàng trống mới phía trên
+        // ==================================================
+
         let count = 0;
 
         for (let r = ROWS - 1; r >= 0; r--) {
+
+            // Kiểm tra tất cả ô trong hàng đều có dữ liệu
             if (this.board[r].every(cell => cell !== null)) {
+
+                // Xóa hàng đầy
                 this.board.splice(r, 1);
-                this.board.unshift(Array(COLS).fill(null));
+
+                // Thêm hàng trống ở phía trên
+                this.board.unshift(
+                    Array(COLS).fill(null)
+                );
+
                 count++;
+
+                // Kiểm tra lại vị trí hiện tại
+                // để xử lý trường hợp clear nhiều dòng liên tiếp
                 r++;
             }
         }
 
+        // Trả về số dòng đã clear
         return count;
     }
 
     _addScore(lines) {
+
+        // ==================================================
+        // UC-07: SCORE CALCULATION
+        // ==================================================
+        // Sau khi clear line:
+        // - Cộng điểm theo số dòng xóa được
+        // - Cập nhật tổng số dòng đã clear
+        // - Tính level mới
+        // ==================================================
+
         if (lines === 0) return;
 
-        this.score += (SCORE_TABLE[lines] || 800) * this.level;
+        // Tính điểm theo bảng SCORE_TABLE
+        this.score +=
+            (SCORE_TABLE[lines] || 800)
+            * this.level;
+
+        // Tổng số dòng đã clear
         this.lines += lines;
 
-        this.level = Math.floor(this.lines / 10) + 1;
+        // Cứ mỗi 10 dòng tăng 1 level
+        this.level =
+            Math.floor(this.lines / 10) + 1;
     }
 
     // ─────────────────────────────
