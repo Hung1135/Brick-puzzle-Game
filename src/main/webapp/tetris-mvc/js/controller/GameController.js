@@ -91,53 +91,122 @@ export default class GameController {
     // GAME FLOW
     // ==================================================
 
+    // startGame() {
+    //
+    //     if (this.state === 'playing') return;
+    //
+    //     // UC-03 Step 1.1: Người chơi nhấn nút Start → hệ thống nhận yêu cầu bắt đầu trò chơi
+    //     // (trigger đến từ button onclick hoặc restartGame() - đã xử lý ở _bindInputs)
+    //
+    //     // UC-03 Step 1.2: Khởi tạo bảng game với lưới ô trống
+    //     // UC-03 Step 1.3: Sinh block đầu tiên và đặt tại vị trí spawn
+    //     // (model.reset() thực hiện cả hai: reset board + _spawnPiece)
+    //     this.model.reset();
+    //
+    //     // Kiểm tra sau reset: board phải hợp lệ và current piece phải tồn tại
+    //     if (!this.model.current) {
+    //         console.error("[UC-03] Spawn thất bại: không có current piece sau reset.");
+    //         return;
+    //     }
+    //
+    //     // UC-03 Step 1.4: Chuyển trạng thái game sang running
+    //     this.state = 'playing';
+    //
+    //     this.gameOverHandled = false;
+    //     this.newRecord = false;
+    //
+    //     // Reset lock delay state
+    //     this._lockTimer = 0;
+    //     this._lockResets = 0;
+    //     this._isLocking = false;
+    //
+    //     // UC-03 Step 1.5: Hiển thị bảng game và block đầu tiên
+    //     this.view.hideAll();
+    //     this._syncView();
+    //
+    //     // UC-03 Step 1.6: Bắt đầu vòng lặp game, block tự động rơi theo tốc độ mặc định
+    //     this._dropAcc = 0;
+    //     this._lastTick = performance.now();
+    //
+    //     if (this._rafId) {
+    //         cancelAnimationFrame(this._rafId);
+    //     }
+    //
+    //     this._loop(this._lastTick);
+    //
+    //     // ===== GAME OVER IMPROVEMENT =====
+    //     // Ghi nhận thời điểm bắt đầu game
+    //     // Dùng để tính tổng thời gian chơi khi game kết thúc
+    //     this.startTime = Date.now();
+    // }
+    // =========================================================================
+    // MAIN FLOW: START GAME LOOP & STATE TRANSITION
+    // IMPLEMENTS UC-03 - START GAME (Nâng cấp toàn diện theo đặc tả hệ thống)
+    // =========================================================================
     startGame() {
-
-        if (this.state === 'playing') return;
-
-        // UC-03 Step 1.1: Người chơi nhấn nút Start → hệ thống nhận yêu cầu bắt đầu trò chơi
-        // (trigger đến từ button onclick hoặc restartGame() - đã xử lý ở _bindInputs)
-
-        // UC-03 Step 1.2: Khởi tạo bảng game với lưới ô trống
-        // UC-03 Step 1.3: Sinh block đầu tiên và đặt tại vị trí spawn
-        // (model.reset() thực hiện cả hai: reset board + _spawnPiece)
-        this.model.reset();
-
-        // Kiểm tra sau reset: board phải hợp lệ và current piece phải tồn tại
-        if (!this.model.current) {
-            console.error("[UC-03] Spawn thất bại: không có current piece sau reset.");
+        // ── [RÀNG BUỘC BẢO VỆ]: Không cho phép khởi chạy đè khi ván chơi đang diễn ra ──
+        if (this.state === 'playing') {
+            console.warn("[UC-03] Trò chơi đang trong trạng thái running. Bỏ qua yêu cầu Start.");
             return;
         }
 
-        // UC-03 Step 1.4: Chuyển trạng thái game sang running
-        this.state = 'playing';
+        console.log("[UC-03] Step 1.1: Hệ thống tiếp nhận yêu cầu bắt đầu trò chơi.");
 
+        // ── [ĐẢM BẢO AN TOÀN VÒNG LẶP]: Triệt tiêu triệt để hiện tượng trùng lặp luồng Animation Frame ──
+        if (this._rafId) {
+            cancelAnimationFrame(this._rafId);
+            this._rafId = null;
+        }
+
+        // ── [XỬ LÝ DỮ LIỆU - UC-03 Step 1.2 & 1.3]: Khởi tạo ma trận trống & Sinh block đầu tiên ──
+        try {
+            // Khởi tạo lại Board (ROWS x COLS), reset điểm, lines, cấp độ và chuỗi Combo = 0
+            this.model.reset();
+        } catch (error) {
+            console.error("[UC-03] Lỗi nghiêm trọng khi khởi tạo dữ liệu trong GameModel:", error);
+            return;
+        }
+
+        // Kiểm tra tính toàn vẹn của dữ liệu sau khi reset
+        if (!this.model.current || !this.model.next) {
+            console.error("[UC-03] Lỗi nghiệp vụ: Không tìm thấy mảnh gạch (current/next piece) sau khi reset Model.");
+            return;
+        }
+
+        console.log("[UC-03] Step 1.2 & 1.3: Đã khởi tạo bảng lưới ô trống và chuẩn bị sẵn khối gạch ngẫu nhiên.");
+
+        // ── [QUẢN LÝ TRẠNG THÁI - UC-03 Step 1.4]: Chuyển đổi trạng thái hệ thống ──
+        this.state = 'playing';
         this.gameOverHandled = false;
         this.newRecord = false;
 
-        // Reset lock delay state
+        // Reset toàn bộ trạng thái Lock Delay & Mảng điều hướng (DAS/ARR) cho lượt chơi mới
+        this._isLocking = false;
         this._lockTimer = 0;
         this._lockResets = 0;
-        this._isLocking = false;
+        this._heldDir = null;
+        this._dasTimer = 0;
+        this._arrTimer = 0;
 
-        // UC-03 Step 1.5: Hiển thị bảng game và block đầu tiên
+        console.log("[UC-03] Step 1.4: Hệ thống chuyển trạng thái game sang running thành công.");
+
+        // ── [ĐỒNG BỘ GIAO DIỆN - UC-03 Step 1.5]: Ẩn màn hình chờ, kết xuất đồ họa khối gạch đầu tiên ──
         this.view.hideAll();
-        this._syncView();
+        this._syncView(); // Đồng bộ bàn cờ canvas, mảnh tiếp theo, cập nhật điểm và reset Combo hiển thị trên HUD
 
-        // UC-03 Step 1.6: Bắt đầu vòng lặp game, block tự động rơi theo tốc độ mặc định
+        console.log("[UC-03] Step 1.5: Ẩn các màn hình che, hiển thị bảng chơi và khối gạch đầu tiên.");
+
+        // ── [KÍCH HOẠT VÒNG LẶP - UC-03 Step 1.6]: Bật tiến trình rơi tự động dựa trên đồng hồ hệ thống ──
         this._dropAcc = 0;
-        this._lastTick = performance.now();
+        this._lastTick = performance.now(); // Đồng bộ thời gian thực cho cơ chế tính khoảng delta-time (dt)
 
-        if (this._rafId) {
-            cancelAnimationFrame(this._rafId);
-        }
-
-        this._loop(this._lastTick);
-
-        // ===== GAME OVER IMPROVEMENT =====
-        // Ghi nhận thời điểm bắt đầu game
-        // Dùng để tính tổng thời gian chơi khi game kết thúc
+        // Ghi nhận mốc thời gian Unix chính xác để tính tổng playTimeSeconds khi kết thúc trận
         this.startTime = Date.now();
+
+        // Kích hoạt chu trình lặp chính (Game Loop) thông qua RequestAnimationFrame an toàn
+        this._rafId = requestAnimationFrame(timestamp => this._loop(timestamp));
+
+        console.log("[UC-03] Step 1.6: Vòng lặp game bắt đầu — khối gạch tự động rơi theo tốc độ mặc định của Level 1.");
     }
 
 

@@ -9,7 +9,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b3eb82bf-75bf-43a1-b0eb-7ea4e25dec1e" name="Changes" comment="" />
+    <list default="true" id="b3eb82bf-75bf-43a1-b0eb-7ea4e25dec1e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/controller/GameController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/controller/GameController.js" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -70,12 +80,12 @@
     &quot;assignee&quot;: &quot;Hung1135&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/Hung1135/Brick-puzzle-Game.git&quot;,
-    &quot;accountId&quot;: &quot;8091f569-ac5a-4f78-a787-c803c1f67a99&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Hung1135/Brick-puzzle-Game.git",
+    "accountId": "36893b5a-bc75-46b3-89d2-ab99c2b46ef8"
   }
-}</component>
+}]]></component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/src/main/java/vn/edu/hcmuaf/fit/ttltw_nhom6/controller/HistoryServlet.java" root0="FORCE_HIGHLIGHTING" />
   </component>
@@ -98,38 +108,40 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Gradle.Brick-puzzle-Game [:vn.edu.hcmuaf.fit.ttltw_nhom6.dao.UserDAO.main()].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Brick-puzzle-Game [:vn.edu.hcmuaf.fit.ttltw_nhom6.db.JdbiConnector.main()].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Build Brick-puzzle-Game.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Build TTLTW_Nhom6 For Git.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Build TTLTW_Nhom6.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.TTLTW_Nhom6 For Git [:vn.edu.hcmuaf.fit.ttltw_nhom6.db.JdbiConnector.main()].executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Tomcat Server.Tomcat 10.1.48.executor&quot;: &quot;Run&quot;,
-    &quot;Tomcat Server.index.jsp.executor&quot;: &quot;Run&quot;,
-    &quot;Tomcat Server.productManagement.jsp.executor&quot;: &quot;Run&quot;,
-    &quot;disable.download.node.interpreter.editor.notification&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;truong&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/hoc tap/puzzle/Brick-puzzle-Game&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15820312&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.Brick-puzzle-Game [:vn.edu.hcmuaf.fit.ttltw_nhom6.dao.UserDAO.main()].executor": "Run",
+    "Gradle.Brick-puzzle-Game [:vn.edu.hcmuaf.fit.ttltw_nhom6.db.JdbiConnector.main()].executor": "Run",
+    "Gradle.Build Brick-puzzle-Game.executor": "Run",
+    "Gradle.Build Brick_puzzle_Game.executor": "Run",
+    "Gradle.Build TTLTW_Nhom6 For Git.executor": "Run",
+    "Gradle.Build TTLTW_Nhom6.executor": "Run",
+    "Gradle.TTLTW_Nhom6 For Git [:vn.edu.hcmuaf.fit.ttltw_nhom6.db.JdbiConnector.main()].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Tomcat Server.Tomcat 10.1.48.executor": "Run",
+    "Tomcat Server.index.jsp.executor": "Run",
+    "Tomcat Server.productManagement.jsp.executor": "Run",
+    "disable.download.node.interpreter.editor.notification": "true",
+    "git-widget-placeholder": "Tan",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/hoc tap/puzzle/Brick-puzzle-Game",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15820312",
+    "project.structure.side.proportion": "0.0",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\HUNG\Downloads\TTLTW_Nhom6 For Git\src\main\webapp" />
@@ -244,8 +256,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.26830.84" />
-        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-IU-252.26830.84" />
+        <option value="bundled-jdk-30f59d01ecdd-cffe25b9f5b3-intellij.indexing.shared.core-IU-253.28294.334" />
+        <option value="bundled-js-predefined-d6986cc7102b-c7e53b3be11b-JavaScript-IU-253.28294.334" />
       </set>
     </attachedChunks>
   </component>
@@ -313,6 +325,7 @@
       <workItem from="1780500931791" duration="20000" />
       <workItem from="1780580554431" duration="45000" />
       <workItem from="1780817429862" duration="2471000" />
+      <workItem from="1780836582329" duration="1173000" />
     </task>
     <servers />
   </component>
