@@ -16,9 +16,6 @@
       <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/index.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/index.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/constants.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/constants.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/controller/GameController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/tetris-mvc/js/controller/GameController.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -333,7 +330,7 @@
       <workItem from="1780761295859" duration="3564000" />
       <workItem from="1780764941779" duration="32000" />
       <workItem from="1780797837733" duration="449000" />
-      <workItem from="1780798376800" duration="2809000" />
+      <workItem from="1780798376800" duration="6228000" />
     </task>
     <servers />
   </component>
